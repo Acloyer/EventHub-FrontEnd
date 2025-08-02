@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Role as IRole, User } from '../lib/types';
-import { getRoles, updateUser, assignRoles } from '../lib/api';
+import React, { useState } from 'react';
+import { User } from '../lib/types';
+import { updateUser } from '../lib/api';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -10,8 +10,6 @@ interface Props {
 }
 
 export const EditUserRolesModal: React.FC<Props> = ({ user, onClose, onSave }) => {
-  const [roles, setRoles] = useState<IRole[]>([]);
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: user.Name || '',
@@ -21,38 +19,11 @@ export const EditUserRolesModal: React.FC<Props> = ({ user, onClose, onSave }) =
     notifyBeforeEvent: user.NotifyBeforeEvent || false
   });
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const rolesData = await getRoles();
-        setRoles(rolesData);
-        
-        // Устанавливаем текущие роли пользователя
-        if (user.Roles && user.Roles.length > 0) {
-          setSelectedRoles(user.Roles);
-        }
-      } catch (error) {
-        console.error('Error fetching roles:', error);
-        toast.error('Failed to load roles');
-      }
-    };
-
-    fetchRoles();
-  }, [user]);
-
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
-
-  const toggleRole = (roleName: string) => {
-    setSelectedRoles(prev =>
-      prev.includes(roleName) 
-        ? prev.filter(r => r !== roleName) 
-        : [...prev, roleName]
-    );
   };
 
   const handleSave = async () => {
@@ -66,9 +37,6 @@ export const EditUserRolesModal: React.FC<Props> = ({ user, onClose, onSave }) =
         IsTelegramVerified: formData.isTelegramVerified,
         NotifyBeforeEvent: formData.notifyBeforeEvent
       });
-
-      // Обновляем роли пользователя
-      await assignRoles(user.Id, selectedRoles);
 
       toast.success('User updated successfully');
       onSave(user); // Передаем исходного пользователя
@@ -137,9 +105,9 @@ export const EditUserRolesModal: React.FC<Props> = ({ user, onClose, onSave }) =
             </div>
           </div>
 
-          {/* Telegram и роли */}
+          {/* Telegram настройки */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Telegram & Roles</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Telegram Settings</h3>
             
             <div className="space-y-3">
               <div className="flex items-center">
@@ -166,28 +134,6 @@ export const EditUserRolesModal: React.FC<Props> = ({ user, onClose, onSave }) =
                 <label htmlFor="notifyBeforeEvent" className="ml-2 block text-sm text-gray-900 dark:text-gray-100">
                   Notify Before Events
                 </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                User Roles
-              </label>
-              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md p-3 bg-white dark:bg-gray-700">
-                {roles.map(role => (
-                  <div key={role.Id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`role-${role.Id}`}
-                      checked={selectedRoles.includes(role.Name)}
-                      onChange={() => toggleRole(role.Name)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700"
-                    />
-                    <label htmlFor={`role-${role.Id}`} className="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                      {role.Name}
-                    </label>
-                  </div>
-                ))}
               </div>
             </div>
           </div>

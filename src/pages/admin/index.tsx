@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import AdminLayout from '../../components/AdminLayout'
-import { useUsers, toggleUserBan, updateUserRoles, updateUser, getUserBanStatus } from '../../lib/api'
+import { useUsers, toggleUserBan, updateUserRoles, updateUser, getUserBanStatus, useDashboardStats } from '../../lib/api'
 import { useAuth } from '../../lib/AuthContext'
 import { toast } from 'react-hot-toast'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -35,6 +35,8 @@ export default function AdminPage() {
     PageSize: pageSize,
     SearchTerm: searchTerm || undefined
   });
+
+  const { data: dashboardStats, error: statsError } = useDashboardStats();
 
   // Check access rights
   useEffect(() => {
@@ -72,7 +74,7 @@ export default function AdminPage() {
               {t('admin.users')}
             </h3>
             <p className="text-3xl font-bold text-blue-600">
-              {usersData?.TotalCount || 0}
+              {dashboardStats?.users || usersData?.TotalCount || 0}
             </p>
           </div>
           
@@ -80,21 +82,27 @@ export default function AdminPage() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
               {t('admin.events')}
             </h3>
-            <p className="text-3xl font-bold text-green-600">0</p>
+            <p className="text-3xl font-bold text-green-600">
+              {dashboardStats?.events || 0}
+            </p>
           </div>
           
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
               {t('admin.comments')}
             </h3>
-            <p className="text-3xl font-bold text-yellow-600">0</p>
+            <p className="text-3xl font-bold text-yellow-600">
+              {dashboardStats?.comments || 0}
+            </p>
           </div>
           
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
               {t('admin.logs')}
             </h3>
-            <p className="text-3xl font-bold text-purple-600">0</p>
+            <p className="text-3xl font-bold text-purple-600">
+              {dashboardStats?.logs || 0}
+            </p>
           </div>
         </div>
 

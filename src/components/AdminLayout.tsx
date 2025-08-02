@@ -59,6 +59,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       href: '/admin/impersonation',
       icon: <ShieldCheckIcon className="w-5 h-5" />
     })
+    sidebarItems.push({
+      name: 'Transfer Ownership',
+      href: '/admin/transfer-ownership',
+      icon: <KeyIcon className="w-5 h-5 text-yellow-500" />
+    })
   }
 
   // Add logs only for SeniorAdmin and Owner

@@ -74,8 +74,11 @@ export default function EventPage() {
       setIsPlanned(!isPlanned)
       mutate()
       toast.success(isPlanned ? t('events.removedFromPlanned') : t('events.addedToPlannedEvents'))
-    } catch (error) {
-      toast.error(t('events.failedToUpdatePlannedList'))
+    } catch (error: any) {
+      // Don't show additional error message if it's already handled in togglePlanned
+      if (error.response?.status !== 403) {
+        toast.error(t('events.failedToUpdatePlannedList'))
+      }
     }
   }, [event, isPlanned, isAuthenticated, t, mutate])
 

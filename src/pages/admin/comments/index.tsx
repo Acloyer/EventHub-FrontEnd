@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { useAuth } from '../../../lib/AuthContext';
-import { getAllComments, pinComment, unpinComment } from '../../../lib/api';
+import { getAllComments, pinComment, unpinComment, deleteComment } from '../../../lib/api';
 import CommentDetailModal from '../../../components/CommentDetailModal';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'next-i18next'
@@ -65,6 +65,19 @@ export default function AdminCommentsPage() {
   const handleCommentClick = (comment: Comment) => {
     setSelectedComment(comment);
     setIsDetailModalOpen(true);
+  };
+
+  const handleDelete = async (commentId: number) => {
+    try {
+      await deleteComment(commentId);
+      toast.success('Comment deleted successfully');
+      // Refresh the comments list
+      const data = await getAllComments(page, pageSize);
+      setCommentsData(data);
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      toast.error('Failed to delete comment');
+    }
   };
 
   useEffect(() => {
@@ -223,9 +236,9 @@ export default function AdminCommentsPage() {
                           {actionLoading === comment.Id ? '...' : comment.IsPinned ? 'Unpin' : 'Pin'}
                         </button>
                         <button
-                          onClick={() => {
-                            toast.success('Delete functionality to be implemented');
-                          }}
+                            onClick={() => {
+                              handleDelete(comment.Id);
+                            }}
                           className="px-2 py-1 text-xs rounded bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800"
                         >
                           Delete

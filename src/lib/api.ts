@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import type {
   AuthResponse,
   User,
@@ -37,7 +37,7 @@ import type {
 } from './types'
 import toast from 'react-hot-toast'
 import axios from 'axios'
-import mutate from 'swr'
+
 export const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5030/api'
 
 // Create axios instance with default config
@@ -61,6 +61,7 @@ api.interceptors.request.use(
     } else {
       console.log('No token found in localStorage')
     }
+    console.log('Making request to:', config.url, 'with method:', config.method)
     return config
   },
   (error) => Promise.reject(error)
@@ -68,8 +69,12 @@ api.interceptors.request.use(
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('Response received:', response.status, response.config.url)
+    return response
+  },
   (error) => {
+    console.error('API Error:', error.response?.status, error.response?.data, error.config?.url)
     if (error.response) {
       // Handle 401 Unauthorized
       if (error.response.status === 401) {
@@ -110,6 +115,10 @@ export const startDeleteConfirmation = async (userId: number): Promise<void> => 
 
 export const startSeedConfirmation = async (): Promise<void> => {
   await api.post('User/start-seed-confirmation')
+}
+
+export const startOwnershipConfirmation = async (): Promise<void> => {
+  await api.post('User/start-ownership-confirmation')
 }
 
 export const confirmDeleteCode = async (dto: { code: number }): Promise<{ message: string }> => {
@@ -230,6 +239,24 @@ export const toggleFavorite = async (eventId: string | number): Promise<{ isFavo
   
   try {
     const response = await api.post(`FavoriteEvents/${eventId}`)
+    
+    // Update SWR cache for events
+    await mutate(
+      (key) => typeof key === 'string' && key.startsWith('Event'),
+      undefined,
+      { revalidate: true }
+    )
+    
+    // Update SWR cache for user events
+    await mutate(
+      (key) => typeof key === 'string' && key.startsWith('User/created-events'),
+      undefined,
+      { revalidate: true }
+    )
+    
+    // Update SWR cache for favorites
+    await mutate('FavoriteEvents')
+    
     return response.data
   } catch (error) {
     toast.error('Failed to toggle favorite')
@@ -246,6 +273,24 @@ export const deleteFavorite = async (eventId: string | number): Promise<{ isFavo
   
   try {
     const response = await api.delete(`FavoriteEvents/${eventId}`)
+    
+    // Update SWR cache for events
+    await mutate(
+      (key) => typeof key === 'string' && key.startsWith('Event'),
+      undefined,
+      { revalidate: true }
+    )
+    
+    // Update SWR cache for user events
+    await mutate(
+      (key) => typeof key === 'string' && key.startsWith('User/created-events'),
+      undefined,
+      { revalidate: true }
+    )
+    
+    // Update SWR cache for favorites
+    await mutate('FavoriteEvents')
+    
     return response.data
   } catch (error) {
     toast.error('Failed to delete favorite')
@@ -262,9 +307,33 @@ export const togglePlanned = async (eventId: string | number): Promise<{ isPlann
   
   try {
     const response = await api.post(`PlannedEvents/${eventId}`)
+    
+    // Update SWR cache for events
+    await mutate(
+      (key) => typeof key === 'string' && key.startsWith('Event'),
+      undefined,
+      { revalidate: true }
+    )
+    
+    // Update SWR cache for user events
+    await mutate(
+      (key) => typeof key === 'string' && key.startsWith('User/created-events'),
+      undefined,
+      { revalidate: true }
+    )
+    
+    // Update SWR cache for planned events
+    await mutate('PlannedEvents')
+    
     return response.data
-  } catch (error) {
-    toast.error('Failed to toggle planned status')
+  } catch (error: any) {
+    // Check if it's a blacklist error
+    if (error.response?.status === 403 && error.response?.data?.message?.includes('banned')) {
+      // We'll use a simple message here since we can't access t() in this context
+      toast.error('You are banned from attending events by this organizer')
+    } else {
+      toast.error('Failed to toggle planned status')
+    }
     throw error
   }
 }
@@ -278,6 +347,24 @@ export const deletePlanned = async (eventId: string | number): Promise<{ isPlann
   
   try {
     const response = await api.delete(`PlannedEvents/${eventId}`)
+    
+    // Update SWR cache for events
+    await mutate(
+      (key) => typeof key === 'string' && key.startsWith('Event'),
+      undefined,
+      { revalidate: true }
+    )
+    
+    // Update SWR cache for user events
+    await mutate(
+      (key) => typeof key === 'string' && key.startsWith('User/created-events'),
+      undefined,
+      { revalidate: true }
+    )
+    
+    // Update SWR cache for planned events
+    await mutate('PlannedEvents')
+    
     return response.data
   } catch (error) {
     toast.error('Failed to delete planned status')
@@ -302,12 +389,14 @@ export const checkEventStatus = async (eventId: string | number): Promise<{ isFa
 
 export const createEvent = async (event: EventCreateDto): Promise<Event> => {
   try {
+    console.log('Creating event with data:', event)
     const response = await api.post('Event', event)
-    toast.success('Event created successfully')
+    console.log('Event created successfully:', response.data)
     return response.data
-  } catch (error) {
-    toast.error('Failed to create event')
-    throw error
+  } catch (error: any) {
+    console.error('Error creating event:', error)
+    const errorMessage = error.response?.data?.message || 'Failed to create event'
+    throw new Error(errorMessage)
   }
 }
 
@@ -920,6 +1009,13 @@ export const checkBlacklistStatus = async (userId: number): Promise<{ isBlacklis
   return response.data
 }
 
+export const useMyBlacklist = () => {
+  return useSWR('my-blacklist', getMyBlacklist, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  })
+}
+
 // Event Attendees API functions
 export const getEventAttendees = async (eventId: number): Promise<{
   EventId: number
@@ -934,6 +1030,17 @@ export const getEventAttendees = async (eventId: number): Promise<{
 }> => {
   const response = await api.get(`PlannedEvents/event/${eventId}/attendees`)
   return response.data
+}
+
+export const useEventAttendees = (eventId: string | number | null) => {
+  return useSWR(
+    eventId ? `event-attendees-${eventId}` : null,
+    () => getEventAttendees(Number(eventId)),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
+  )
 }
 
 export const removeAttendeeFromEvent = async (eventId: number, attendeeId: number): Promise<{ message: string }> => {
@@ -960,4 +1067,59 @@ export const getRoles = async (): Promise<Array<{ Id: number; Name: string }>> =
 export const assignRoles = async (userId: number, roles: string[]): Promise<{ message: string }> => {
   const response = await api.post(`/User/${userId}/roles`, { Roles: roles })
   return response.data
+}
+
+export const seedDatabase = async (seedData: {
+  OwnerCount?: number
+  SeniorAdminCount: number
+  AdminCount: number
+  OrganizerCount: number
+  RegularUserCount: number
+  PastEventCount: number
+  FutureEventCount: number
+  PositiveCommentCount: number
+  NeutralCommentCount: number
+  NegativeCommentCount: number
+  CreateReactions: boolean
+  CreateFavorites: boolean
+  CreatePlannedEvents: boolean
+}): Promise<{ message: string }> => {
+  const response = await api.post('seed/seed', seedData)
+  return response.data
+}
+
+export const getDatabaseStats = async (): Promise<{
+  users: number
+  usersLastCreated?: string
+  events: number
+  eventsLastCreated?: string
+  comments: number
+  commentsLastCreated?: string
+  reactions: number
+  reactionsLastCreated?: string
+  favorites: number
+  favoritesLastCreated?: string
+  plannedEvents: number
+  plannedEventsLastCreated?: string
+}> => {
+  const response = await api.get('seed/stats')
+  return response.data
+}
+
+export const getDashboardStats = async (): Promise<{
+  users: number
+  events: number
+  comments: number
+  logs: number
+}> => {
+  const response = await api.get('User/dashboard-stats')
+  return response.data
+}
+
+export const useDashboardStats = () => {
+  return useSWR('dashboard-stats', getDashboardStats, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    refreshInterval: 30000 // Refresh every 30 seconds
+  })
 }

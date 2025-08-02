@@ -217,7 +217,7 @@ export default function AdminUsers() {
           <EditUserRolesModal
             user={selectedUser}
             onClose={() => setShowRolesModal(false)}
-            onSuccess={(updatedUser) => {
+            onSave={(updatedUser) => {
               mutate();
               setShowRolesModal(false);
             }}

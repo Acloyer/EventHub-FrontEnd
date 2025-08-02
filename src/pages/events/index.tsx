@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { useEvents } from '../../lib/api'
+import { useEvents, useFavorites, usePlannedEvents } from '../../lib/api'
 import { EventFilterDto, Event } from '../../lib/types'
 import { format } from 'date-fns'
 import { 
@@ -49,6 +49,8 @@ export default function EventsPage() {
   }
   
   const { data: eventsData, error, isValidating, mutate } = useEvents(filters)
+  const { data: favorites, mutate: mutateFavorites } = useFavorites()
+  const { data: plannedEvents, mutate: mutatePlanned } = usePlannedEvents()
   
   // Handle search debounce
   useEffect(() => {
@@ -68,6 +70,12 @@ export default function EventsPage() {
     }
     if (router.query.category) {
       setSelectedCategory(router.query.category as string)
+    }
+    if (router.query.startDate) {
+      setStartDate(router.query.startDate as string)
+    }
+    if (router.query.endDate) {
+      setEndDate(router.query.endDate as string)
     }
     if (router.query.page) {
       setPageNumber(parseInt(router.query.page as string, 10))
@@ -98,26 +106,47 @@ export default function EventsPage() {
       }
     }, undefined, { shallow: true })
   }
-  
+
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category === selectedCategory ? '' : category)
-    setPageNumber(1) // Reset to first page on category change
+    setSelectedCategory(category)
+    setPageNumber(1)
+    // Update URL immediately for category changes
+    router.push({
+      pathname: '/events',
+      query: {
+        ...(searchTerm && { search: searchTerm }),
+        ...(category && { category }),
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate })
+      }
+    }, undefined, { shallow: true })
   }
-  
+
   const handleDateChange = (type: 'start' | 'end', value: string) => {
     if (type === 'start') {
       setStartDate(value)
     } else {
       setEndDate(value)
     }
-    setPageNumber(1) // Reset to first page on date change
+    setPageNumber(1)
+    // Update URL immediately for date changes
+    const newStartDate = type === 'start' ? value : startDate
+    const newEndDate = type === 'end' ? value : endDate
+    router.push({
+      pathname: '/events',
+      query: {
+        ...(searchTerm && { search: searchTerm }),
+        ...(selectedCategory && { category: selectedCategory }),
+        ...(newStartDate && { startDate: newStartDate }),
+        ...(newEndDate && { endDate: newEndDate })
+      }
+    }, undefined, { shallow: true })
   }
-  
+
   const handlePageChange = (newPage: number) => {
     setPageNumber(newPage)
-    window.scrollTo(0, 0)
   }
-  
+
   const resetFilters = () => {
     setSearchTerm('')
     setDebouncedSearchTerm('')
@@ -125,82 +154,133 @@ export default function EventsPage() {
     setStartDate('')
     setEndDate('')
     setPageNumber(1)
-    router.push('/events', undefined, { shallow: true })
-  }
-  
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-500">Error loading events. Please try again later.</p>
-      </div>
-    )
+    // Update URL to reflect cleared filters
+    router.push({
+      pathname: '/events',
+      query: {}
+    }, undefined, { shallow: true })
   }
 
-  if (!eventsData) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <LoadingSpinner />
-      </div>
-    )
+  // Function to check if event is in favorites
+  const isEventInFavorites = (eventId: number) => {
+    return favorites?.some(fav => fav.Id === eventId) || false
+  }
+
+  // Function to check if event is in planned
+  const isEventInPlanned = (eventId: number) => {
+    return plannedEvents?.some(planned => planned.Id === eventId) || false
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          {isAuthenticated && user?.Roles?.some((role: string) => ['Admin', 'SeniorAdmin', 'Owner', 'Organizer'].includes(role)) && (
-            <Link href="/admin/events/create" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-              <PlusCircleIcon className="h-5 w-5 mr-2" />
-              Create Event
-            </Link>
-          )}
-        </div>
-        
-        {/* Search & Filters */}
-        <div className="mb-8 bg-white dark:bg-gray-800 p-4 shadow-sm rounded-lg">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-grow">
-              <div className="relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          {t('events.title')}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          {t('events.description')}
+        </p>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+        {/* Active Filters Summary */}
+        {(searchTerm || selectedCategory || startDate || endDate) && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  Active Filters:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {searchTerm && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
+                      Search: "{searchTerm}"
+                    </span>
+                  )}
+                  {selectedCategory && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
+                      Category: {selectedCategory}
+                    </span>
+                  )}
+                  {startDate && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
+                      From: {new Date(startDate).toLocaleDateString()}
+                    </span>
+                  )}
+                  {endDate && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
+                      To: {new Date(endDate).toLocaleDateString()}
+                    </span>
+                  )}
                 </div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md leading-5 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100"
-                  placeholder="Search events"
-                />
               </div>
-            </div>
-            <div>
               <button
-                type="button"
-                onClick={() => setShowFilters(!showFilters)}
-                className="w-full inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                onClick={resetFilters}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium"
               >
-                <FunnelIcon className="h-5 w-5 mr-2 text-gray-500 dark:text-gray-400" />
-                Filters
-                {Object.keys(filters).filter(key => key !== 'SearchTerm' && filters[key as keyof EventFilterDto])?.length > 0 && (
-                  <span className="ml-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-semibold rounded-full px-2 py-0.5">
-                    {Object.keys(filters).filter(key => key !== 'SearchTerm' && filters[key as keyof EventFilterDto])?.length ?? 0}
-                  </span>
-                )}
+                Clear All
               </button>
             </div>
           </div>
+        )}
+        <form onSubmit={handleSearch} className="space-y-4">
+          {/* Search Bar */}
+          <div className="flex gap-4">
+            <div className="flex-1 relative">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder={t('events.searchPlaceholder')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                disabled={isValidating}
+              />
+              {isValidating && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={isValidating}
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isValidating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Searching...
+                </>
+              ) : (
+                t('events.search')
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-gray-700 dark:text-gray-300"
+            >
+              <FunnelIcon className="h-4 w-4" />
+              {t('events.filters')}
+            </button>
+          </div>
 
-          {/* Expanded Filters */}
+          {/* Advanced Filters */}
           {showFilters && (
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-600">
               {/* Category Filter */}
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('events.category')}
+                </label>
                 <select
                   id="category"
                   value={selectedCategory}
                   onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100"
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-white"
                 >
                   <option value="">All Categories</option>
                   {(categories ?? []).map(category => (
@@ -211,24 +291,30 @@ export default function EventsPage() {
 
               {/* Date Filter */}
               <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('events.startDate') || 'Start Date'}
+                </label>
                 <input
                   type="date"
                   id="startDate"
                   value={startDate}
                   onChange={(e) => handleDateChange('start', e.target.value)}
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+                  max={endDate || undefined}
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800"
                 />
               </div>
 
               <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('events.endDate') || 'End Date'}
+                </label>
                 <input
                   type="date"
                   id="endDate"
                   value={endDate}
                   onChange={(e) => handleDateChange('end', e.target.value)}
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+                  min={startDate || undefined}
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800"
                 />
               </div>
 
@@ -238,99 +324,135 @@ export default function EventsPage() {
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-700 shadow-sm text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-700 shadow-sm text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
-                    Clear All Filters
+                    {t('common.clear')} {t('events.filters')}
                   </button>
                 </div>
               </div>
             </div>
           )}
-        </div>
+        </form>
+      </div>
 
-        <div className="space-y-6">
-          {isValidating && !eventsData && (
-            <div className="flex justify-center items-center py-12">
-              <LoadingSpinner />
-            </div>
-          )}
-          
-          {error && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error loading events</h3>
-              <p className="text-gray-500 dark:text-gray-300">Please try again later</p>
-            </div>
-          )}
+      <div className="space-y-6">
+        {isValidating && !eventsData && (
+          <div className="flex justify-center items-center py-12">
+            <LoadingSpinner />
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error loading events</h3>
+            <p className="text-gray-500 dark:text-gray-300">Please try again later</p>
+          </div>
+        )}
 
-          {eventsData?.Items?.length === 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No events found</h3>
-              <p className="text-gray-500 dark:text-gray-300 mb-6">Try changing your search criteria or check back later</p>
-            </div>
-          )}
+        {eventsData?.Items?.length === 0 && !isValidating && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              {t('events.noEventsFound') || 'No events found'}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-300 mb-6">
+              {searchTerm || selectedCategory || startDate || endDate 
+                ? 'Try adjusting your search criteria or filters'
+                : 'Check back later for new events'
+              }
+            </p>
+            {(searchTerm || selectedCategory || startDate || endDate) && (
+              <button
+                onClick={resetFilters}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 transition-colors"
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
+        )}
 
-          {eventsData?.Items?.length > 0 && (
-            <>
-              <div className="grid grid-cols-1 gap-6">
-                {eventsData?.Items?.map((event) => (
+        {eventsData?.Items && eventsData.Items.length > 0 && (
+          <>
+            {/* Results Summary */}
+            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              Showing {eventsData.Items.length} of {eventsData.TotalCount} events
+              {eventsData.TotalPages > 1 && ` (page ${pageNumber} of ${eventsData.TotalPages})`}
+            </div>
+            <div className="grid grid-cols-1 gap-6">
+              {eventsData.Items.map((event) => {
+                // Update event with current favorite and planned status
+                const updatedEvent = {
+                  ...event,
+                  IsFavorite: isEventInFavorites(event.Id),
+                  IsPlanned: isEventInPlanned(event.Id)
+                }
+                
+                return (
                   <EventCard 
                     key={event.Id} 
-                    event={event}
-                    onEventUpdate={mutate}
+                    event={updatedEvent}
+                    onEventUpdate={() => {
+                      mutate()
+                      mutateFavorites()
+                      mutatePlanned()
+                    }}
                   />
-                ))}
-              </div>
+                )
+              })}
+            </div>
 
-              {/* Pagination */}
-              {eventsData.TotalPages > 0 && (
-                <div className="flex justify-center mt-8">
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button
-                      onClick={() => handlePageChange(pageNumber - 1)}
-                      disabled={pageNumber === 1}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium ${
-                        pageNumber === 1
-                          ? 'text-gray-300 cursor-not-allowed'
-                          : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <span className="sr-only">Previous</span>
-                      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                    </button>
+            {/* Pagination */}
+            {eventsData.TotalPages > 0 && (
+              <div className="flex justify-center mt-8">
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => handlePageChange(pageNumber - 1)}
+                    disabled={pageNumber === 1}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium ${
+                      pageNumber === 1
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="sr-only">Previous</span>
+                    <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                  </button>
 
-                    {Array.from({ length: eventsData.TotalPages }, (_, i) => i + 1).map((page) => (
+                  {/* Page Numbers */}
+                  {Array.from({ length: Math.min(5, eventsData.TotalPages) }, (_, i) => {
+                    const page = i + 1
+                    return (
                       <button
                         key={page}
                         onClick={() => handlePageChange(page)}
                         className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                           page === pageNumber
-                            ? 'z-10 bg-blue-50 dark:bg-blue-900 border-blue-500 text-blue-600 dark:text-blue-200'
+                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
                             : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                       >
                         {page}
                       </button>
-                    ))}
+                    )
+                  })}
 
-                    <button
-                      onClick={() => handlePageChange(pageNumber + 1)}
-                      disabled={pageNumber === eventsData.TotalPages}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium ${
-                        pageNumber === eventsData.TotalPages
-                          ? 'text-gray-300 cursor-not-allowed'
-                          : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <span className="sr-only">Next</span>
-                      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                    </button>
-                  </nav>
-                </div>
-              )}
-            </>
-          )}
-
-        </div>
+                  <button
+                    onClick={() => handlePageChange(pageNumber + 1)}
+                    disabled={pageNumber === eventsData.TotalPages}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium ${
+                      pageNumber === eventsData.TotalPages
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="sr-only">Next</span>
+                    <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </nav>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )

@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import ErrorBoundary from './ErrorBoundary'
+import ImpersonationBanner from './ImpersonationBanner'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -83,6 +84,7 @@ export default function Layout({ children }: LayoutProps) {
             },
           }}
         />
+        <ImpersonationBanner />
         {!isBannedPage && <Navbar />}
         <main className={`flex-grow ${isBannedPage ? '' : 'container mx-auto px-4 py-6 sm:px-6 lg:px-8'}`}>
           {children}

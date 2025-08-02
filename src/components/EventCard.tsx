@@ -1,5 +1,5 @@
 // src/components/EventCard.tsx
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import {
@@ -40,6 +40,12 @@ export default function EventCard({
   const [isPlanned, setIsPlanned] = useState(event.IsPlanned)
   const [loading, setLoading] = useState({ favorite: false, planned: false })
 
+  // Sync local state with event data when it changes
+  useEffect(() => {
+    setIsFavorite(event.IsFavorite)
+    setIsPlanned(event.IsPlanned)
+  }, [event.IsFavorite, event.IsPlanned])
+
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault()
     if (!isAuthenticated) {
@@ -72,9 +78,12 @@ export default function EventCard({
       setIsPlanned(prev => !prev)
       toast.success(!isPlanned ? t('events.addedToPlannedEvents') : t('events.removedFromPlanned'))
       if (onEventUpdate) onEventUpdate()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error toggling planned status:', error)
-      toast.error(t('events.failedToUpdatePlannedList'))
+      // Don't show additional error message if it's already handled in togglePlanned
+      if (error.response?.status !== 403) {
+        toast.error(t('events.failedToUpdatePlannedList'))
+      }
     } finally {
       setLoading(prev => ({ ...prev, planned: false }))
     }
@@ -109,7 +118,7 @@ export default function EventCard({
                   <button
                     onClick={handleToggleFavorite}
                     disabled={loading.favorite}
-                    className="text-gray-400 hover:text-red-500 transition-colors focus:outline-none"
+                    className="text-gray-400 hover:text-red-500 transition-colors focus:outline-none disabled:opacity-50"
                     aria-label={isFavorite ? t('events.removeFromFavorites') : t('events.addToFavorites')}
                   >
                     {isFavorite ? (
@@ -121,7 +130,7 @@ export default function EventCard({
                   <button
                     onClick={handleTogglePlanned}
                     disabled={loading.planned}
-                    className="text-gray-400 hover:text-blue-500 transition-colors focus:outline-none"
+                    className="text-gray-400 hover:text-blue-500 transition-colors focus:outline-none disabled:opacity-50"
                     aria-label={isPlanned ? t('events.removeFromPlanned') : t('events.planToAttend')}
                   >
                     {isPlanned ? (

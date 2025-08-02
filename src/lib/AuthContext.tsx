@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import toast from 'react-hot-toast'
-import type { User, AuthResponse, LoginDto, RegisterDto, UserProfileDto } from './types'
-import { login as apiLogin, register as apiRegister, getUserProfile, logout as apiLogout } from './api'
+import { User, LoginDto, RegisterDto } from './types'
+import { login as apiLogin, register as apiRegister, getUserProfile, impersonateUser } from './api'
+import { toast } from 'react-hot-toast'
 import { useIsClient } from './useIsClient'
 
 interface AuthContextType {
@@ -14,6 +14,7 @@ interface AuthContextType {
   register: (data: RegisterDto) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
+  startImpersonating: (targetUserId: number) => Promise<void>
   stopImpersonating: () => void
 }
 
@@ -93,8 +94,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token')
     localStorage.removeItem('impersonationToken')
     localStorage.removeItem('originalToken')
-    apiLogout()
-    toast.success('Successfully logged out!')
+    router.push('/login')
+  }
+
+  const startImpersonating = async (targetUserId: number) => {
+    if (!isClient) return;
+    
+    try {
+      setIsLoading(true)
+      
+      // Store the original token
+      const originalToken = localStorage.getItem('token')
+      if (originalToken) {
+        localStorage.setItem('originalToken', originalToken)
+      }
+      
+      // Get impersonation token
+      const response = await impersonateUser(targetUserId)
+      
+      // Store the impersonation token
+      localStorage.setItem('impersonationToken', response.impersonationToken)
+      localStorage.setItem('token', response.impersonationToken)
+      
+      // Update user state
+      setUser(response.targetUser)
+      setIsImpersonating(true)
+      
+      toast.success(`Now impersonating ${response.targetUser.Name}`)
+      router.push('/')
+    } catch (error) {
+      console.error('Impersonation error:', error)
+      toast.error('Failed to impersonate user')
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const stopImpersonating = () => {
@@ -139,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register, 
         logout, 
         refreshUser,
+        startImpersonating,
         stopImpersonating
       }}
     >

@@ -264,7 +264,6 @@ export interface ActivityLog {
   EntityType: string
   EntityId?: number
   Details: string
-  IpAddress: string
   UserAgent: string
   Timestamp: string
 }

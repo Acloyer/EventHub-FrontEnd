@@ -14,7 +14,7 @@ export default function OrganizerEditEventPage() {
   const router = useRouter()
   const { id } = router.query
   const { isAuthenticated, user } = useAuth()
-  const { data: event, error, loading } = useEvent(id as string)
+  const { data: event, error, isValidating } = useEvent(id as string)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<EventCreateDto>({
     title: '',
@@ -47,10 +47,10 @@ export default function OrganizerEditEventPage() {
     setIsSubmitting(true)
     try {
       await updateEvent(Number(id), formData)
-      toast.success('Event updated successfully')
+      toast.success(t('events.eventUpdated'))
       router.push('/organizer')
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update event')
+      toast.error(error.message || t('events.failedToLoadEvents'))
     } finally {
       setIsSubmitting(false)
     }
@@ -72,14 +72,14 @@ export default function OrganizerEditEventPage() {
             {t('common.accessDenied')}
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            {t('common.organizerAccessRequired')}
+            {t('events.organizerAccessRequired')}
           </p>
         </div>
       </div>
     )
   }
 
-  if (loading) {
+  if (isValidating) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <LoadingSpinner />
@@ -95,7 +95,7 @@ export default function OrganizerEditEventPage() {
             {t('common.error')}
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Failed to load event
+            {t('events.failedToLoadEvents')}
           </p>
         </div>
       </div>

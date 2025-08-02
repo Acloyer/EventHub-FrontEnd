@@ -9,7 +9,8 @@ import {
   EyeIcon, 
   XMarkIcon,
   FunnelIcon,
-  UserIcon
+  UserIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'next-i18next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
@@ -49,6 +50,8 @@ export default function ActivityLogsPage() {
   const [summary, setSummary] = useState<ActivitySummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,6 +81,16 @@ export default function ActivityLogsPage() {
       fetchData();
     }
   }, [isAuthenticated, page, pageSize, actionType]);
+
+  const handleLogClick = (log: ActivityLog) => {
+    setSelectedLog(log);
+    setShowDetails(true);
+  };
+
+  const closeDetails = () => {
+    setShowDetails(false);
+    setSelectedLog(null);
+  };
 
   if (!isAuthenticated || !user?.Roles?.some(role => ['Admin', 'SeniorAdmin', 'Owner'].includes(role))) {
     return (
@@ -159,7 +172,8 @@ export default function ActivityLogsPage() {
                 {logs.map((log) => (
                   <div
                     key={log.Id}
-                    className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                    onClick={() => handleLogClick(log)}
                   >
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       {/* Main Action Info */}
@@ -167,34 +181,31 @@ export default function ActivityLogsPage() {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              log.ActionType?.includes('USER') ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                              log.ActionType?.includes('EVENT') ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                              log.ActionType?.includes('COMMENT') ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                              log.ActionType?.includes('REACTION') ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                              log.Action?.includes('USER') ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                              log.Action?.includes('EVENT') ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                              log.Action?.includes('COMMENT') ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                              log.Action?.includes('REACTION') ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
                               'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                             }`}>
-                              {log.ActionType || 'Unknown'}
+                              {log.Action || 'Unknown'}
                             </span>
-                            {log.TargetId && (
+                            {log.EntityId && (
                               <span className="text-xs text-gray-500 dark:text-gray-400">
-                                Target ID: {log.TargetId}
+                                {log.EntityType} ID: {log.EntityId}
                               </span>
                             )}
                           </div>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            ID: {log.Id}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              ID: {log.Id}
+                            </span>
+                            <EyeIcon className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                          </div>
                         </div>
                         
                         <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                          {log.Description}
+                          {log.Details}
                         </h3>
-                        
-                        {log.Details && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                            {log.Details}
-                          </p>
-                        )}
                         
                         <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
                           <span className="flex items-center">
@@ -215,25 +226,17 @@ export default function ActivityLogsPage() {
                           </h4>
                           <div className="space-y-1 text-xs">
                             <div className="flex justify-between">
-                              <span className="text-gray-500 dark:text-gray-400">IP Address:</span>
-                              <span className="text-gray-700 dark:text-gray-300 font-mono">
-                                {log.IpAddress || 'Unknown'}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
                               <span className="text-gray-500 dark:text-gray-400">User Agent:</span>
                               <span className="text-gray-700 dark:text-gray-300 truncate max-w-32" title={log.UserAgent}>
                                 {log.UserAgent ? log.UserAgent.substring(0, 30) + '...' : 'Unknown'}
                               </span>
                             </div>
-                            {log.SessionId && (
-                              <div className="flex justify-between">
-                                <span className="text-gray-500 dark:text-gray-400">Session:</span>
-                                <span className="text-gray-700 dark:text-gray-300 font-mono text-xs">
-                                  {log.SessionId.substring(0, 8)}...
-                                </span>
-                              </div>
-                            )}
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 dark:text-gray-400">Entity Type:</span>
+                              <span className="text-gray-700 dark:text-gray-300">
+                                {log.EntityType || 'N/A'}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -294,6 +297,117 @@ export default function ActivityLogsPage() {
                     Next
                   </button>
                 </nav>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Log Details Modal */}
+        {showDetails && selectedLog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Activity Log Details
+                </h3>
+                <button
+                  onClick={closeDetails}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Basic Information */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+                    Basic Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Log ID</label>
+                      <p className="text-sm text-gray-900 dark:text-gray-100 font-mono">{selectedLog.Id}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">User ID</label>
+                      <p className="text-sm text-gray-900 dark:text-gray-100">{selectedLog.UserId}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Action</label>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        selectedLog.Action?.includes('USER') ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                        selectedLog.Action?.includes('EVENT') ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                        selectedLog.Action?.includes('COMMENT') ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                        selectedLog.Action?.includes('REACTION') ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                      }`}>
+                        {selectedLog.Action}
+                      </span>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Timestamp</label>
+                      <p className="text-sm text-gray-900 dark:text-gray-100">
+                        {format(new Date(selectedLog.Timestamp), 'MMM d, yyyy \'at\' h:mm:ss a')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Entity Information */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+                    Entity Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Entity Type</label>
+                      <p className="text-sm text-gray-900 dark:text-gray-100">{selectedLog.EntityType || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Entity ID</label>
+                      <p className="text-sm text-gray-900 dark:text-gray-100">{selectedLog.EntityId || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+                    Details
+                  </h4>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                      {selectedLog.Details || 'No details provided'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Technical Information */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+                    Technical Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">User Agent</label>
+                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mt-1">
+                        <p className="text-xs text-gray-900 dark:text-gray-100 font-mono break-all">
+                          {selectedLog.UserAgent || 'Unknown'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={closeDetails}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>

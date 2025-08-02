@@ -22,22 +22,35 @@ export default function CreateEventPage() {
     endDate: '',
     category: '',
     location: '',
-    maxParticipants: 0,
+    maxParticipants: 10,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      const eventData = {
-        ...formData,
-        organizerName: user?.Name || '',
-        organizerEmail: user?.Email || '',
+      // Validate required fields
+      if (!formData.title.trim() || !formData.description.trim() || 
+          !formData.startDate || !formData.endDate || 
+          !formData.category || !formData.location.trim()) {
+        toast.error('Please fill in all required fields')
+        return
       }
-      await createEvent(eventData)
+
+      // Validate maxParticipants
+      if (formData.maxParticipants < 2) {
+        toast.error('Maximum participants must be at least 2')
+        return
+      }
+
+      // Log the data being sent for debugging
+      console.log('Sending event data:', formData)
+
+      await createEvent(formData)
       toast.success('Event created successfully')
       router.push('/admin/events')
     } catch (err: any) {
+      console.error('Error creating event:', err)
       toast.error(err.message || 'Failed to create event')
     } finally {
       setIsSubmitting(false)

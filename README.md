@@ -1,6 +1,6 @@
 # EventHub Frontend
 
-**Version 1.2**
+**Version 1.2.1**
 
 A modern, responsive event management platform built with Next.js 13, featuring comprehensive user management, real-time notifications, multi-language support, and advanced administrative capabilities.
 
