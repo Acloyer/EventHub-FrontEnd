@@ -1,6 +1,6 @@
 # EventHub Frontend
 
-**Version 1.2.1**
+**Version 1.3**
 
 A modern, responsive event management platform built with Next.js 13, featuring comprehensive user management, real-time notifications, multi-language support, and advanced administrative capabilities.
 
@@ -29,6 +29,8 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 - **User registration** with email verification
 - **Profile management** with avatar and personal information
 - **Password reset** and account recovery
+- **Ownership Transfer System** with Telegram verification
+- **User Impersonation** for administrative debugging
 
 ### 📅 Event Management System
 - **Event browsing** with advanced filtering and search
@@ -51,6 +53,7 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 ### 🔔 Advanced Notification System
 - **Real-time notifications** with auto-refresh (30s intervals)
 - **In-app notification center** with read/unread status
+- **Click to Delete** - Notifications are removed when clicked
 - **Notification types**:
   - Event comments and reactions
   - Event reminders and updates
@@ -78,9 +81,11 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 - **User management** with bulk operations
 - **Event administration** with full CRUD capabilities
 - **Comment moderation** with pin/unpin functionality
-- **Activity logs** with detailed audit trails
+- **Activity logs** with detailed audit trails and filtering
 - **System statistics** and analytics
 - **Database seeding** with secure access control
+- **Ownership Transfer Management** with verification system
+- **Enhanced Role Management** with hierarchical sorting
 
 ### 🌐 Multi-Language Support
 - **Three languages**: English, Russian, Azerbaijani
@@ -96,6 +101,8 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 - **Smooth animations** and transitions
 - **Loading states** and error handling
 - **Toast notifications** for user feedback
+- **Search focus preservation** - cursor stays in place during typing
+- **Enhanced pagination** with proper button disabling
 
 ## 🏗️ Architecture
 
@@ -121,9 +128,10 @@ src/pages/
 │   │   └── [id]/attendees.tsx  # Event attendees
 │   ├── comments/
 │   │   └── index.tsx           # Comment moderation
-│   ├── user-roles.tsx          # Role management
-│   ├── activity-logs.tsx       # Audit logs
+│   ├── user-roles.tsx          # Role management with hierarchy
+│   ├── activity-logs.tsx       # Audit logs with filtering
 │   ├── impersonation.tsx       # User impersonation
+│   ├── transfer-ownership.tsx  # Ownership transfer system
 │   └── seed-database.tsx       # Database seeding
 └── organizer/
     ├── index.tsx               # Organizer dashboard
@@ -138,8 +146,8 @@ src/pages/
 - **Form Components**: `Form.tsx`, `Input.tsx`, `Button.tsx`, `TimeInput.tsx`
 - **Event Components**: `EventCard.tsx`, `EventComments.tsx`, `ReactionPicker.tsx`
 - **Admin Components**: `AdminTable.tsx`, `AdminUserTable.tsx`, `CommentAdminTable.tsx`
-- **Modal Components**: `UserBanModal.tsx`, `UserMuteModal.tsx`, `EditUserRolesModal.tsx`
-- **Utility Components**: `LoadingSpinner.tsx`, `ThemeToggle.tsx`, `LanguageSwitcher.tsx`
+- **Modal Components**: `UserBanModal.tsx`, `UserMuteModal.tsx`, `EditUserRolesModal.tsx`, `TransferOwnershipModal.tsx`
+- **Utility Components**: `LoadingSpinner.tsx`, `ThemeToggle.tsx`, `LanguageSwitcher.tsx`, `SearchInput.tsx`
 
 ### Hooks and Utilities
 - **Custom Hooks**: `useAuth.ts`, `useToken.ts`, `useIsClient.ts`
@@ -243,6 +251,37 @@ npm run dev
 - **Modern browsers** (Chrome, Firefox, Safari, Edge)
 - **Progressive enhancement** for older browsers
 - **Mobile browsers** optimization
+
+## 🆕 Version 1.3 New Features
+
+### 🔄 Ownership Transfer System
+- ✅ **Telegram Verification** - Secure ownership transfer with 6-digit codes
+- ✅ **Transfer Modal** - User-friendly interface for ownership transfer
+- ✅ **Role Hierarchy** - Automatic role downgrade/upgrade during transfer
+- ✅ **Audit Logging** - Complete tracking of ownership transfers
+
+### 📊 Enhanced Activity Logging
+- ✅ **Comprehensive Logs** - Track all user actions and system events
+- ✅ **Advanced Filtering** - Filter logs by user, action type, date range
+- ✅ **Real-time Monitoring** - Live activity tracking for administrators
+- ✅ **Audit Trail** - Complete history for security and compliance
+
+### 🎯 Improved Role Management
+- ✅ **Hierarchical Sorting** - Roles displayed in priority order
+- ✅ **Owner Role Protection** - Owner role excluded from manual assignment
+- ✅ **Enhanced UI** - Better visual representation of role hierarchy
+- ✅ **Role Validation** - Prevent assignment of roles higher than user's level
+
+### 🔔 Enhanced Notification System
+- ✅ **Click to Delete** - Notifications removed when clicked
+- ✅ **Improved UX** - Better user experience with immediate feedback
+- ✅ **Bulk Operations** - Mark all notifications as read
+- ✅ **Real-time Updates** - Instant notification updates
+
+### 🔍 Search & Navigation Improvements
+- ✅ **Focus Preservation** - Search cursor stays in place during typing
+- ✅ **Enhanced Pagination** - Proper button disabling for navigation
+- ✅ **Better UX** - Improved user experience across all search interfaces
 
 ## 🌟 Key Features
 

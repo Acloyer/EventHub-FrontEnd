@@ -90,6 +90,8 @@ function ProfilePage() {
     }
   }
 
+
+
   const handleRequestTelegramLink = async () => {
     try {
       console.log('Requesting Telegram link for user:', user?.Id)
