@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
-import { updateComment, getUserById } from '../lib/api'
+import { updateComment, deleteComment, getUserById } from '../lib/api'
 import { useAuth } from '../lib/AuthContext'
 import { toast } from 'react-hot-toast'
+import { useTranslation } from 'next-i18next'
 
 interface Comment {
   Id: number
@@ -23,9 +24,15 @@ interface CommentCardProps {
 
 export default function CommentCard({ comment, onEdit, onDelete }: CommentCardProps) {
   const { user } = useAuth()
+  const { t } = useTranslation('common')
   const [username, setUsername] = useState<string>('Unknown user')
   const [isEditing, setIsEditing] = useState(false)
   const [editedComment, setEditedComment] = useState(comment.Comment)
+
+  // Update editedComment when comment changes
+  useEffect(() => {
+    setEditedComment(comment.Comment)
+  }, [comment.Comment])
 
   const isAdmin = user?.Roles?.some(role =>
     ['Admin', 'Owner', 'Organizer', 'SeniorAdmin'].includes(role)
@@ -35,25 +42,43 @@ export default function CommentCard({ comment, onEdit, onDelete }: CommentCardPr
 
   useEffect(() => {
     getUserById(comment.UserId)
-      .then(userData => setUsername(userData.Name + ' (' + userData.Roles[0] + ')' || 'Unknown user'))
+      .then(userData => setUsername(userData.Name + ' (' + userData.Roles[0] + ')' || t('comment.unknownUser')))
       // .then(userData => console.log(userData))
-      .catch(() => setUsername('Unknown user'))
+      .catch(() => setUsername(t('comment.unknownUser')))
   }, [comment.UserId])
 
   const handleEdit = () => setIsEditing(true)
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure?') && onDelete) onDelete(comment.Id)
+  const handleDelete = async () => {
+    if (!window.confirm(t('comment.confirmDelete'))) return
+    
+    try {
+      await deleteComment(comment.Id)
+      toast.success(t('comment.deletedSuccessfully'))
+      // Call onDelete to trigger parent component refresh
+      if (onDelete) {
+        onDelete(comment.Id)
+      }
+    } catch (error) {
+      console.error('Failed to delete comment:', error)
+      toast.error(t('comment.deleteFailed'))
+    }
   }
 
   const handleSave = async () => {
+    console.log('handleSave called with comment ID:', comment.Id, 'and text:', editedComment)
     try {
       await updateComment(comment.Id, { Comment: editedComment })
-      toast.success('Comment updated')
+      toast.success(t('comment.updatedSuccessfully'))
       setIsEditing(false)
-      if (onEdit) onEdit(comment.Id, editedComment)
-    } catch {
-      toast.error('Failed to update comment')
+      console.log('Comment updated successfully in handleSave')
+      // Call onEdit to trigger parent component refresh
+      if (onEdit) {
+        onEdit(comment.Id, editedComment)
+      }
+    } catch (error) {
+      console.error('Error in handleSave:', error)
+      toast.error(t('comment.updateFailed'))
     }
   }
 
@@ -71,7 +96,7 @@ export default function CommentCard({ comment, onEdit, onDelete }: CommentCardPr
                 ? format(new Date(comment.PostDate), 'MMM d, yyyy, h:mm a')
                 : 'Invalid date'}
               {comment.EditDate && comment.EditDate !== comment.PostDate && (
-                <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">(edited)</span>
+                <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">({t('comment.edited')})</span>
               )}
             </p>
           </div>
@@ -98,7 +123,16 @@ export default function CommentCard({ comment, onEdit, onDelete }: CommentCardPr
               onChange={(e) => setEditedComment(e.target.value)}
               rows={3}
             />
-            <button onClick={handleSave} className="btn-primary ml-2">Save</button>
+            <button onClick={handleSave} className="btn-primary ml-2">{t('common.save')}</button>
+            <button
+              onClick={() => {
+                setIsEditing(false)
+                setEditedComment(comment.Comment)
+              }}
+              className="ml-2 px-3 py-1 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+            >
+              {t('common.cancel')}
+            </button>
           </div>
         ) : (
           comment.Comment

@@ -31,6 +31,7 @@ interface NavItem {
   requiresAuth: boolean
   requiresAdmin?: boolean
   requiresOrganizer?: boolean
+  requiresElevatedRole?: boolean
 }
 
 export default function Navbar() {
@@ -91,7 +92,8 @@ export default function Navbar() {
       name: t('navbar.myEvents'), 
       href: '/my-events', 
       icon: <Squares2X2Icon className="h-5 w-5 mr-1" />,
-      requiresAuth: true
+      requiresAuth: true,
+      requiresElevatedRole: true
     }
   ] : []
 
@@ -129,6 +131,7 @@ export default function Navbar() {
                     if (item.requiresAuth && !isAuthenticated) return null
                     if (item.requiresAdmin && !isAdmin) return null
                     if (item.requiresOrganizer && !isOrganizer) return null
+                    if (item.requiresElevatedRole && !(user?.Roles?.some((role: string) => ['Admin', 'SeniorAdmin', 'Owner', 'Organizer'].includes(role)))) return null
                     return (
                       <Link
                         key={item.name}
@@ -287,6 +290,7 @@ export default function Navbar() {
                 if (item.requiresAuth && !isAuthenticated) return null
                 if (item.requiresAdmin && !isAdmin) return null
                 if (item.requiresOrganizer && !isOrganizer) return null
+                if (item.requiresElevatedRole && !(user?.Roles?.some((role: string) => ['Admin', 'SeniorAdmin', 'Owner', 'Organizer'].includes(role)))) return null
                 return (
                   <Disclosure.Button
                     key={item.name}

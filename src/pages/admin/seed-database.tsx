@@ -65,7 +65,7 @@ interface SeedSettings {
 }
 
 export default function SeedDatabasePage() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   const { isAuthenticated, user } = useAuth()
   
   // States for access control
@@ -612,7 +612,7 @@ export default function SeedDatabasePage() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Past Events
+                        {t('events.pastEvents')}
                       </label>
                       <input
                         type="number"
@@ -625,7 +625,7 @@ export default function SeedDatabasePage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Future Events
+                        {t('events.futureEvents')}
                       </label>
                       <input
                         type="number"

@@ -90,6 +90,8 @@ function ProfilePage() {
     }
   }
 
+
+
   const handleRequestTelegramLink = async () => {
     try {
       console.log('Requesting Telegram link for user:', user?.Id)
@@ -139,6 +141,16 @@ function ProfilePage() {
     await Promise.all([mutateFavorites(), mutatePlanned()])
   }
 
+  const roleTranslationKeys: Record<string, string> = {
+    User: 'roles.user',
+    Admin: 'roles.admin',
+    SeniorAdmin: 'roles.seniorAdmin',
+    Owner: 'roles.owner',
+    Organizer: 'roles.organizer',
+    Creator: 'roles.creator',
+    // Добавьте все остальные роли, которые есть в системе
+  };
+
   if (!user || error) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -184,8 +196,8 @@ function ProfilePage() {
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('profile.roles')}</dt>
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                  {userProfile?.Roles?.length > 0 
-                    ? userProfile.Roles.join(', ') 
+                  {userProfile?.Roles?.length > 0
+                    ? userProfile.Roles.map(role => t(roleTranslationKeys[role] || role)).join(', ')
                     : t('profile.noRolesAssigned')
                   }
                 </dd>

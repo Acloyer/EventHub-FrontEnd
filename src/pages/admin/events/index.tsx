@@ -287,26 +287,26 @@ function AdminEventsPage() {
 
       {/* Pagination */}
       {events?.TotalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-neutral-200 sm:px-6 mt-6 rounded-md">
+        <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-t border-neutral-200 dark:border-gray-700 sm:px-6 mt-6 rounded-md">
           <div className="flex justify-between flex-1 sm:hidden">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-neutral-300 dark:border-gray-600 rounded-md hover:bg-neutral-50 dark:hover:bg-gray-600 disabled:opacity-50"
             >
               Previous
             </button>
             <button
               onClick={() => setPage(p => Math.min(events?.TotalPages || 1, p + 1))}
               disabled={page === events?.TotalPages}
-              className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-neutral-300 dark:border-gray-600 rounded-md hover:bg-neutral-50 dark:hover:bg-gray-600 disabled:opacity-50"
             >
               Next
             </button>
           </div>
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-neutral-700">
+              <p className="text-sm text-neutral-700 dark:text-gray-300">
                 Showing <span className="font-medium">{((page - 1) * 10) + 1}</span> to{' '}
                 <span className="font-medium">
                   {Math.min(page * 10, events?.TotalCount || 0)}
@@ -319,17 +319,17 @@ function AdminEventsPage() {
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-l-md hover:bg-neutral-50 disabled:opacity-50"
+                  className="px-3 py-2 text-sm font-medium text-neutral-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-neutral-300 dark:border-gray-600 rounded-l-md hover:bg-neutral-50 dark:hover:bg-gray-600 disabled:opacity-50"
                 >
                   Previous
                 </button>
-                <span className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border-t border-b border-neutral-300">
+                <span className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-t border-b border-neutral-300 dark:border-gray-600">
                   Page {page} of {events?.TotalPages || 1}
                 </span>
                 <button
                   onClick={() => setPage(p => Math.min(events?.TotalPages || 1, p + 1))}
                   disabled={page === events?.TotalPages}
-                  className="px-3 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-r-md hover:bg-neutral-50 disabled:opacity-50"
+                  className="px-3 py-2 text-sm font-medium text-neutral-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-neutral-300 dark:border-gray-600 rounded-r-md hover:bg-neutral-50 dark:hover:bg-gray-600 disabled:opacity-50"
                 >
                   Next
                 </button>

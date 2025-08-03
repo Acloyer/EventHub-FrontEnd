@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { OrganizerBlacklistDto, CreateBlacklistEntryDto } from '../lib/types'
 import { addToBlacklist, removeFromBlacklist } from '../lib/api'
 import { toast } from 'react-hot-toast'
+import { useTranslation } from 'next-i18next'
 import { XMarkIcon, UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline'
 
 interface Props {
@@ -15,22 +16,23 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
   const [newUserId, setNewUserId] = useState('')
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useTranslation('common')
 
   const handleAddToBlacklist = async () => {
     if (!newUserId.trim()) {
-      toast.error('Please enter a user ID')
+      toast.error(t('blacklist.enterUserId'))
       return
     }
 
     const userId = parseInt(newUserId)
     if (isNaN(userId)) {
-      toast.error('Please enter a valid user ID')
+      toast.error(t('blacklist.enterValidUserId'))
       return
     }
 
     // Check if user is already in blacklist
     if (blacklist.some(entry => entry.BannedUserId === userId)) {
-      toast.error('User is already in blacklist')
+      toast.error(t('blacklist.userAlreadyBlacklisted'))
       return
     }
 
@@ -42,13 +44,13 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
       }
 
       await addToBlacklist(dto)
-      toast.success('User added to blacklist')
+      toast.success(t('blacklist.userAddedToBlacklist'))
       setNewUserId('')
       setReason('')
       onBlacklistUpdate()
     } catch (error) {
       console.error('Error adding to blacklist:', error)
-      toast.error('Failed to add user to blacklist')
+      toast.error(t('blacklist.failedToAddUser'))
     } finally {
       setLoading(false)
     }
@@ -58,11 +60,11 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
     setLoading(true)
     try {
       await removeFromBlacklist({ BannedUserId: bannedUserId })
-      toast.success('User removed from blacklist')
+      toast.success(t('blacklist.userRemovedFromBlacklist'))
       onBlacklistUpdate()
     } catch (error) {
       console.error('Error removing from blacklist:', error)
-      toast.error('Failed to remove user from blacklist')
+      toast.error(t('blacklist.failedToRemoveUser'))
     } finally {
       setLoading(false)
     }
