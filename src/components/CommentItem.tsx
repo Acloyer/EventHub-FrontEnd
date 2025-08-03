@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { 
   TrashIcon, 
@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../lib/AuthContext'
 import { deleteComment, updateComment, pinComment, unpinComment } from '../lib/api'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'next-i18next'
 
 interface CommentItemProps {
   comment: {
@@ -37,9 +38,15 @@ export default function CommentItem({
   onCommentDelete 
 }: CommentItemProps) {
   const { user } = useAuth()
+  const { t } = useTranslation('common')
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(comment.Comment)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Update editText when comment changes
+  useEffect(() => {
+    setEditText(comment.Comment)
+  }, [comment.Comment])
 
   const isOwner = user?.Id === comment.UserId
   const isAdmin = user?.Roles?.some(role => ['Admin', 'SeniorAdmin', 'Owner'].includes(role))
@@ -54,11 +61,14 @@ export default function CommentItem({
     try {
       await updateComment(comment.Id, { Comment: editText.trim() })
       setIsEditing(false)
-      onCommentUpdate()
-      toast.success('Comment updated successfully')
+      // Add a small delay before calling onCommentUpdate
+      setTimeout(() => {
+        onCommentUpdate()
+      }, 100)
+      toast.success(t('comment.updatedSuccessfully'))
     } catch (error) {
       console.error('Failed to update comment:', error)
-      toast.error('Failed to update comment')
+      toast.error(t('comment.updateFailed'))
     } finally {
       setIsLoading(false)
     }
@@ -67,16 +77,19 @@ export default function CommentItem({
   const handleDelete = async () => {
     if (!comment.Id) return
     
-    if (!confirm('Are you sure you want to delete this comment?')) return
+    if (!confirm(t('comment.confirmDelete'))) return
     
     setIsLoading(true)
     try {
       await deleteComment(comment.Id)
-      onCommentDelete()
-      toast.success('Comment deleted successfully')
+      // Add a small delay before calling onCommentDelete
+      setTimeout(() => {
+        onCommentDelete()
+      }, 100)
+      toast.success(t('comment.deletedSuccessfully'))
     } catch (error) {
       console.error('Failed to delete comment:', error)
-      toast.error('Failed to delete comment')
+      toast.error(t('comment.deleteFailed'))
     } finally {
       setIsLoading(false)
     }
@@ -89,15 +102,18 @@ export default function CommentItem({
     try {
       if (comment.IsPinned) {
         await unpinComment(comment.Id)
-        toast.success('Comment unpinned')
+        toast.success(t('comment.unpinned'))
       } else {
         await pinComment(comment.Id)
-        toast.success('Comment pinned')
+        toast.success(t('comment.pinned'))
       }
-      onCommentUpdate()
+      // Add a small delay before calling onCommentUpdate
+      setTimeout(() => {
+        onCommentUpdate()
+      }, 100)
     } catch (error) {
       console.error('Failed to toggle pin:', error)
-      toast.error('Failed to toggle pin')
+      toast.error(t('comment.pinToggleFailed'))
     } finally {
       setIsLoading(false)
     }
@@ -120,7 +136,7 @@ export default function CommentItem({
           <div>
             <div className="flex items-center space-x-2">
               <span className="font-medium text-gray-900 dark:text-gray-100">
-                {comment.User?.Name || 'Unknown User'}
+                {comment.User?.Name || t('comment.unknownUser')}
               </span>
               {comment.IsPinned && (
                 <MapPinIcon className="h-4 w-4 text-yellow-500" />
@@ -132,7 +148,7 @@ export default function CommentItem({
             <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
               <span>{formatDate(comment.PostDate)}</span>
               {comment.IsEdited && (
-                <span className="text-gray-400 dark:text-gray-500">(edited)</span>
+                <span className="text-gray-400 dark:text-gray-500">({t('comment.edited')})</span>
               )}
             </div>
           </div>
@@ -141,14 +157,14 @@ export default function CommentItem({
         {/* Actions */}
         <div className="flex items-center space-x-1">
           {canPin && (
-                         <button
-               onClick={handlePinToggle}
-               disabled={isLoading}
-               className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${comment.IsPinned ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500'}`}
-               title={comment.IsPinned ? 'Unpin comment' : 'Pin comment'}
-             >
-               <MapPinIcon className="h-4 w-4" />
-             </button>
+            <button
+              onClick={handlePinToggle}
+              disabled={isLoading}
+              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${comment.IsPinned ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500'}`}
+              title={comment.IsPinned ? t('comment.unpinComment') : t('comment.pinComment')}
+            >
+              <MapPinIcon className="h-4 w-4" />
+            </button>
           )}
           
           {canEdit && (
@@ -156,7 +172,7 @@ export default function CommentItem({
               onClick={() => setIsEditing(!isEditing)}
               disabled={isLoading}
               className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-              title="Edit comment"
+              title={t('comment.editComment')}
             >
               <PencilIcon className="h-4 w-4" />
             </button>
@@ -167,7 +183,7 @@ export default function CommentItem({
               onClick={handleDelete}
               disabled={isLoading}
               className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
-              title="Delete comment"
+              title={t('comment.deleteComment')}
             >
               <TrashIcon className="h-4 w-4" />
             </button>
@@ -193,14 +209,14 @@ export default function CommentItem({
                 }}
                 className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleEdit}
                 disabled={isLoading || !editText.trim()}
                 className="px-3 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
               >
-                {isLoading ? 'Saving...' : 'Save'}
+                {isLoading ? t('common.saving') : t('common.save')}
               </button>
             </div>
           </div>

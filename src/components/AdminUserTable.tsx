@@ -5,8 +5,9 @@ import Button from './Button'
 import TransferOwnershipModal from './TransferOwnershipModal'
 import type { User, MuteDurationDto } from '../lib/types'
 import { toggleUserBan, muteUser, muteUserForDuration, updateUserRoles } from '../lib/api'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import { useAuth } from '../lib/AuthContext'
+import { useTranslation } from 'next-i18next'
 import RoleBadge from './RoleBadge'
 
 interface AdminUserTableProps {
@@ -75,6 +76,7 @@ export default function AdminUserTable({
   token
 }: AdminUserTableProps) {
   const { user: currentUser } = useAuth()
+  const { t } = useTranslation('common')
   const [isLoading, setIsLoading] = useState<{
     ban: number | null
     mute: number | null
@@ -167,10 +169,10 @@ export default function AdminUserTable({
       setIsLoading(prev => ({ ...prev, ban: userId }))
       const updatedUser = await toggleUserBan(userId)
       onUserUpdate?.(userId, { IsBanned: updatedUser.IsBanned })
-      toast.success('User ban status updated successfully')
+      toast.success(t('admin.userBanStatusUpdated'))
     } catch (error) {
       console.error('Error toggling ban:', error)
-      toast.error('Failed to update user ban status')
+      toast.error(t('admin.userBanStatusUpdateFailed'))
     } finally {
       setIsLoading(prev => ({ ...prev, ban: null }))
     }
@@ -188,10 +190,10 @@ export default function AdminUserTable({
         IsMuted: true,
         MuteExpiresAt: new Date(Date.now() + minutes * 60000).toISOString()
       })
-      toast.success('User muted successfully')
+      toast.success(t('admin.userMuted'))
     } catch (error) {
       console.error('Error muting user:', error)
-      toast.error('Failed to mute user')
+      toast.error(t('admin.userMuteFailed'))
     } finally {
       setIsLoading(prev => ({ ...prev, mute: null }))
     }
@@ -205,10 +207,10 @@ export default function AdminUserTable({
         IsMuted: false,
         MuteExpiresAt: undefined
       })
-      toast.success('User unmuted successfully')
+      toast.success(t('admin.userUnmuted'))
     } catch (error) {
       console.error('Error unmuting user:', error)
-      toast.error('Failed to unmute user')
+      toast.error(t('admin.userUnmuteFailed'))
     } finally {
       setIsLoading(prev => ({ ...prev, mute: null }))
     }
@@ -221,7 +223,7 @@ export default function AdminUserTable({
   const handleTransferSuccess = () => {
     // Update user data after successful transfer
     // In a real application, state should be updated here
-    toast.success('Ownership transferred successfully')
+    toast.success(t('admin.ownershipTransferredSuccessfully'))
   }
 
   const handleRoleChange = async (userId: number, newRole: string) => {
@@ -229,7 +231,7 @@ export default function AdminUserTable({
     if (!targetUser) return
 
     if (!canChangeRole(targetUser, newRole)) {
-      toast.error('You do not have permission to assign this role')
+      toast.error(t('admin.noPermissionToAssignRole'))
       return
     }
 
@@ -242,9 +244,9 @@ export default function AdminUserTable({
       onUserUpdate?.(userId, { Roles: [newRole] })
       
       setEditingRoles(prev => ({ ...prev, [userId]: false }))
-      toast.success('User role updated successfully')
+      toast.success(t('admin.userRoleUpdated'))
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update user role')
+      toast.error(error.response?.data?.message || t('admin.userRoleUpdateFailed'))
     } finally {
       setIsLoading(prev => ({ ...prev, role: null }))
     }

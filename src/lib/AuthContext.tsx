@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { User, LoginDto, RegisterDto } from './types'
 import { login as apiLogin, register as apiRegister, getUserProfile, impersonateUser } from './api'
 import { toast } from 'react-hot-toast'
+import { useTranslation } from 'next-i18next'
 import { useIsClient } from './useIsClient'
 
 interface AuthContextType {
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isImpersonating, setIsImpersonating] = useState<boolean>(false)
+  const { t } = useTranslation('common')
   const isClient = useIsClient()
 
   const router = useRouter()
@@ -56,16 +58,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('token', response.Token)
       } else {
         console.error('No token received in login response')
-        toast.error('Authentication error: No token received')
+        toast.error(t('auth.noTokenReceived'))
         throw new Error('No token received')
       }
       setUser(response.User)
       
-      toast.success('Successfully logged in!')
+      toast.success(t('auth.loginSuccess'))
       router.push('/')
     } catch (error) {
       console.error('Login error:', error)
-      toast.error('Login failed. Please check your credentials.')
+      toast.error(t('auth.loginFailed'))
       throw error
     } finally {
       setIsLoading(false)
@@ -79,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push('/login')
     } catch (error) {
       console.error('Registration error:', error)
-      toast.error('Registration failed. Please try again.')
+      toast.error(t('auth.registerFailed'))
       throw error
     } finally {
       setIsLoading(false)
@@ -120,11 +122,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(response.targetUser)
       setIsImpersonating(true)
       
-      toast.success(`Now impersonating ${response.targetUser.Name}`)
+      toast.success(t('auth.impersonatingUser', { name: response.targetUser.Name }))
       router.push('/')
     } catch (error) {
       console.error('Impersonation error:', error)
-      toast.error('Failed to impersonate user')
+      toast.error(t('auth.impersonationFailed'))
       throw error
     } finally {
       setIsLoading(false)
@@ -141,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('originalToken')
       setIsImpersonating(false)
       refreshUser()
-      toast.success('Returned to your original account')
+      toast.success(t('auth.returnedToOriginalAccount'))
     }
   }
 
@@ -228,14 +230,15 @@ export function withAdminAuth<P extends object>(Component: React.ComponentType<P
   return function AdminRoute(props: P) {
     const { user, isLoading } = useAuth()
     const router = useRouter()
++   const { t } = useTranslation('common')
     const isAdmin = user?.Roles?.some(role => ['Admin', 'SeniorAdmin', 'Owner', 'Organizer'].includes(role)) || false
 
     useEffect(() => {
       if (!isLoading && (!user || !isAdmin)) {
-        toast.error('Access denied. Admin privileges required.')
+        toast.error(t('auth.adminAccessRequired'))
         // router.replace('/events')
       }
-    }, [user, isAdmin, isLoading, router])
+    }, [user, isAdmin, isLoading, router, t])
 
     if (isLoading) {
       return <div className="flex items-center justify-center min-h-screen">

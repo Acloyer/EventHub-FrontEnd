@@ -12,10 +12,14 @@ export const CommentAdminTable: React.FC<Props> = ({ eventId, currentUser }) => 
   const [comments, setComments] = useState<IComment[]>([]);
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
+  const refreshComments = () => {
     fetch(`/api/comments?eventId=${eventId}&page=${page}&pageSize=10`)
       .then(res => res.json())
       .then(setComments);
+  };
+
+  useEffect(() => {
+    refreshComments();
   }, [eventId, page]);
 
   return (
@@ -28,8 +32,8 @@ export const CommentAdminTable: React.FC<Props> = ({ eventId, currentUser }) => 
             <td colSpan={4}>
               <CommentItem
                 comment={c}
-                onCommentUpdate={() => {/* refresh comments */}}
-                onCommentDelete={() => {/* refresh comments */}}
+                onCommentUpdate={refreshComments}
+                onCommentDelete={refreshComments}
               />
             </td>
           </tr>

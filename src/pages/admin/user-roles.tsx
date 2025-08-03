@@ -60,6 +60,14 @@ const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
     return priorities[role as keyof typeof priorities] || 0
   }
 
+  const sortRolesByHierarchy = (roles: Role[]) => {
+    return roles.sort((a, b) => {
+      const priorityA = getRolePriority(a.Name)
+      const priorityB = getRolePriority(b.Name)
+      return priorityB - priorityA // Сортировка по убыванию (от высшей к низшей)
+    })
+  }
+
   const canAssignRole = (roleName: string) => {
     const currentUserMaxPriority = Math.max(...currentUserRoles.map(getRolePriority))
     const targetRolePriority = getRolePriority(roleName)
@@ -74,11 +82,6 @@ const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
 
     setSelectedRoles(prev => {
       if (prev.includes(roleName)) {
-        // Check if removing Owner role
-        if (roleName === 'Owner' && prev.includes('Owner')) {
-          setShowWarning(true)
-          return prev
-        }
         return prev.filter(r => r !== roleName)
       } else {
         return [...prev, roleName]
@@ -171,10 +174,11 @@ const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
             Available Roles
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {availableRoles.map((role) => {
+            {sortRolesByHierarchy(availableRoles)
+              .filter(role => role.Name !== 'Owner') // Исключаем роль Owner
+              .map((role) => {
               const isSelected = selectedRoles.includes(role.Name)
               const canAssign = canAssignRole(role.Name)
-              const isOwner = role.Name === 'Owner'
               
               return (
                 <div
@@ -202,11 +206,6 @@ const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
                           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {role.Name}
                           </span>
-                          {isOwner && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                              Owner
-                            </span>
-                          )}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {getRolePriority(role.Name)} priority

@@ -424,10 +424,14 @@ export const deleteEvent = async (eventId: number): Promise<void> => {
 // ==================== Comments ====================
 
 export const useComments = (eventId: string | number | null) => {
+  const cacheKey = eventId ? [`comments/${eventId}/`] : null
+  console.log('useComments cache key:', cacheKey)
+  
   return useSWR(
-    eventId ? [`comments/${eventId}/`] : null,
+    cacheKey,
     async () => {
       const response = await api.get(`comments/${eventId}/`)
+      console.log('Comments fetched:', response.data)
       return response.data
     }
   )
@@ -440,12 +444,38 @@ export const getAllComments = async (pageNumber: number = 1, pageSize: number = 
 
 export const createComment = async (eventId: number, data: CreateCommentDto): Promise<CommentDto> => {
   const response = await api.post(`comments/${eventId}/`, data)
+  
+  // Update the specific cache key
+  const cacheKey = [`comments/${eventId}/`]
+  await mutate(cacheKey, undefined, { revalidate: true })
+  
   return response.data
 }
 
 export const updateComment = async (commentId: number, data: UpdateCommentDto): Promise<CommentDto> => {
   try {
     const response = await api.put(`comments/${commentId}`, data)
+    
+    console.log('Comment updated successfully, updating cache...')
+    
+    // Add a small delay to ensure the server has processed the update
+    setTimeout(async () => {
+      // Force revalidation of all comment caches
+      await mutate(
+        (key) => {
+          if (Array.isArray(key) && key[0] && typeof key[0] === 'string' && key[0].startsWith('comments/')) {
+            console.log('Found comment cache key:', key)
+            return true
+          }
+          return false
+        },
+        undefined,
+        { revalidate: true }
+      )
+      
+      console.log('Cache updated successfully')
+    }, 100)
+    
     return response.data
   } catch (error) {
     toast.error('Failed to update comment')
@@ -455,7 +485,20 @@ export const updateComment = async (commentId: number, data: UpdateCommentDto): 
 
 export const deleteComment = async (commentId: number): Promise<void> => {
   try {
-    await api.delete(`comments/${commentId}`)
+    const response = await api.delete(`comments/${commentId}`)
+    
+    // Get the event ID from the response to update the specific cache key
+    // Since delete doesn't return the event ID, we'll need to update all comment caches
+    await mutate(
+      (key) => {
+        if (Array.isArray(key) && key[0] && typeof key[0] === 'string' && key[0].startsWith('comments/')) {
+          return true
+        }
+        return false
+      },
+      undefined,
+      { revalidate: true }
+    )
   } catch (error) {
     console.error('Failed to delete comment:', error)
     toast.error('Failed to delete comment')
@@ -466,6 +509,18 @@ export const deleteComment = async (commentId: number): Promise<void> => {
 export const deleteAdminComment = async (commentId: number): Promise<void> => {
   try {
     await api.delete(`comments/admin/${commentId}`)
+    
+    // Update SWR cache for comments
+    await mutate(
+      (key) => {
+        if (Array.isArray(key) && key[0] && typeof key[0] === 'string' && key[0].startsWith('comments/')) {
+          return true
+        }
+        return false
+      },
+      undefined,
+      { revalidate: true }
+    )
   } catch (error) {
     console.error('Failed to delete comment as admin:', error)
     toast.error('Failed to delete comment')
@@ -476,6 +531,19 @@ export const deleteAdminComment = async (commentId: number): Promise<void> => {
 export const pinComment = async (commentId: number): Promise<CommentDto> => {
   try {
     const response = await api.patch(`comments/pin/${commentId}?pinned=true`)
+    
+    // Update SWR cache for comments
+    await mutate(
+      (key) => {
+        if (Array.isArray(key) && key[0] && typeof key[0] === 'string' && key[0].startsWith('comments/')) {
+          return true
+        }
+        return false
+      },
+      undefined,
+      { revalidate: true }
+    )
+    
     return response.data
   } catch (error) {
     console.error('Failed to pin comment:', error)
@@ -487,6 +555,19 @@ export const pinComment = async (commentId: number): Promise<CommentDto> => {
 export const unpinComment = async (commentId: number): Promise<CommentDto> => {
   try {
     const response = await api.patch(`comments/pin/${commentId}?pinned=false`)
+    
+    // Update SWR cache for comments
+    await mutate(
+      (key) => {
+        if (Array.isArray(key) && key[0] && typeof key[0] === 'string' && key[0].startsWith('comments/')) {
+          return true
+        }
+        return false
+      },
+      undefined,
+      { revalidate: true }
+    )
+    
     return response.data
   } catch (error) {
     console.error('Failed to unpin comment:', error)
