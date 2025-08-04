@@ -32,13 +32,13 @@ export default function OrganizerCreateEventPage() {
       if (!formData.title.trim() || !formData.description.trim() || 
           !formData.startDate || !formData.endDate || 
           !formData.category || !formData.location.trim()) {
-        toast.error('Please fill in all required fields')
+        toast.error(t('admin.toast.pleaseFillAllRequiredFields'))
         return
       }
 
       // Validate maxParticipants
       if (formData.maxParticipants < 2) {
-        toast.error('Maximum participants must be at least 2')
+        toast.error(t('admin.toast.maxParticipantsAtLeast2'))
         return
       }
 
@@ -46,11 +46,11 @@ export default function OrganizerCreateEventPage() {
       console.log('Sending event data:', formData)
 
       await createEvent(formData)
-      toast.success('Event created successfully')
+              toast.success(t('admin.toast.eventCreatedSuccessfully'))
       router.push('/organizer')
     } catch (err: any) {
       console.error('Error creating event:', err)
-      toast.error(err.message || 'Failed to create event')
+              toast.error(err.message || t('admin.toast.failedToCreateEvent'))
     } finally {
       setIsSubmitting(false)
     }

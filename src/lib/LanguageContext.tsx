@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useRouter } from 'next/router'
 import { useTranslation } from 'next-i18next'
+import { updatePreferredLanguage } from './api'
 
 interface LanguageContextType {
   currentLanguage: string
@@ -73,6 +74,20 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       const currentPath = router.asPath
       await router.push(currentPath, currentPath, { locale: lang })
       
+      // Отправляем предпочитаемый язык на сервер (только если пользователь авторизован)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (token) {
+        try {
+          await updatePreferredLanguage(lang)
+          console.log('LanguageContext: Updated preferred language on server to', lang)
+        } catch (error) {
+          console.warn('LanguageContext: Failed to update preferred language on server:', error)
+          // Не прерываем процесс изменения языка, если не удалось обновить на сервере
+        }
+      } else {
+        console.log('LanguageContext: User not authenticated, skipping server update')
+      }
+      
     } catch (error) {
       console.error('Failed to change language:', error)
     } finally {
@@ -93,9 +108,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         const routerLang = router.locale || router.defaultLocale || DEFAULT_LANGUAGE
         const targetLang = storedLang !== DEFAULT_LANGUAGE ? storedLang : routerLang
         
+        console.log('LanguageContext: Initializing language', {
+          storedLang,
+          routerLang,
+          targetLang,
+          i18nLanguage: i18n?.language,
+          isInitialized: i18n?.isInitialized
+        })
+        
         // Устанавливаем язык в i18n
         if (i18n && typeof i18n.changeLanguage === 'function') {
           await i18n.changeLanguage(targetLang)
+          console.log('LanguageContext: Changed i18n language to', targetLang)
         }
         
         // Обновляем состояние

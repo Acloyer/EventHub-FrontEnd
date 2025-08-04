@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { User, LoginDto, RegisterDto } from './types'
-import { login as apiLogin, register as apiRegister, getUserProfile, impersonateUser } from './api'
+import { login as apiLogin, register as apiRegister, getUserProfile, impersonateUser, updatePreferredLanguage } from './api'
 import { toast } from 'react-hot-toast'
 import { useTranslation } from 'next-i18next'
 import { useIsClient } from './useIsClient'
@@ -63,6 +63,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setUser(response.User)
       
+      // Обновляем предпочитаемый язык на сервере после успешного логина
+      try {
+        const currentLang = typeof window !== 'undefined' ? localStorage.getItem('eventhub-language') || 'en' : 'en'
+        await updatePreferredLanguage(currentLang)
+        console.log('AuthContext: Updated preferred language after login to', currentLang)
+      } catch (error) {
+        console.warn('AuthContext: Failed to update preferred language after login:', error)
+        // Не прерываем процесс логина, если не удалось обновить язык
+      }
+      
       toast.success(t('auth.loginSuccess'))
       router.push('/')
     } catch (error) {
@@ -78,6 +88,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true)
       await apiRegister(data)
+      
+      // После успешной регистрации обновляем предпочитаемый язык
+      try {
+        const currentLang = typeof window !== 'undefined' ? localStorage.getItem('eventhub-language') || 'en' : 'en'
+        await updatePreferredLanguage(currentLang)
+        console.log('AuthContext: Updated preferred language after registration to', currentLang)
+      } catch (error) {
+        console.warn('AuthContext: Failed to update preferred language after registration:', error)
+        // Не прерываем процесс регистрации, если не удалось обновить язык
+      }
+      
       router.push('/login')
     } catch (error) {
       console.error('Registration error:', error)
@@ -121,6 +142,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Update user state
       setUser(response.targetUser)
       setIsImpersonating(true)
+      
+      // Обновляем предпочитаемый язык на сервере после успешного impersonation
+      try {
+        const currentLang = typeof window !== 'undefined' ? localStorage.getItem('eventhub-language') || 'en' : 'en'
+        await updatePreferredLanguage(currentLang)
+        console.log('AuthContext: Updated preferred language after impersonation to', currentLang)
+      } catch (error) {
+        console.warn('AuthContext: Failed to update preferred language after impersonation:', error)
+        // Не прерываем процесс impersonation, если не удалось обновить язык
+      }
       
       toast.success(t('auth.impersonatingUser', { name: response.targetUser.Name }))
       router.push('/')
@@ -230,7 +261,7 @@ export function withAdminAuth<P extends object>(Component: React.ComponentType<P
   return function AdminRoute(props: P) {
     const { user, isLoading } = useAuth()
     const router = useRouter()
-+   const { t } = useTranslation('common')
+    const { t } = useTranslation('common')
     const isAdmin = user?.Roles?.some(role => ['Admin', 'SeniorAdmin', 'Owner', 'Organizer'].includes(role)) || false
 
     useEffect(() => {

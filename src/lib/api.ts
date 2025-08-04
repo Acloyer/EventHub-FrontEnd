@@ -1037,7 +1037,12 @@ export const getActivityLogs = async (filters?: ActivityLogFilterDto): Promise<P
       ? `?${new URLSearchParams(Object.entries(filters).filter(([_, v]) => v !== undefined) as [string, string][]).toString()}`
       : ''
     
+    console.log('getActivityLogs: Making request to:', `activity-logs${queryString}`)
+    
     const response = await api.get(`activity-logs${queryString}`)
+    
+    console.log('getActivityLogs: Response:', response.data)
+    
     return response.data
   } catch (error) {
     console.error('Failed to fetch activity logs:', error)
@@ -1124,8 +1129,36 @@ export const useEventAttendees = (eventId: string | number | null) => {
   )
 }
 
+export const getUserPlannedEvents = async (userId: number, pageNumber: number = 1, pageSize: number = 10): Promise<PaginatedResponse<{
+  Id: number
+  EventId: number
+  CreatedAt: string
+  Event: EventDto
+}>> => {
+  const response = await api.get(`/User/${userId}/planned-events`, {
+    params: { pageNumber, pageSize }
+  })
+  return response.data
+}
+
+export const useUserPlannedEvents = (userId: number) => {
+  return useSWR(
+    `user-planned-events-${userId}`,
+    () => getUserPlannedEvents(userId),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
+  )
+}
+
 export const removeAttendeeFromEvent = async (eventId: number, attendeeId: number): Promise<{ message: string }> => {
   const response = await api.delete(`PlannedEvents/event/${eventId}/attendee/${attendeeId}`)
+  return response.data
+}
+
+export const removeUserFromPlannedEvent = async (userId: number, eventId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/User/${userId}/planned-events/${eventId}`)
   return response.data
 }
 
@@ -1203,4 +1236,9 @@ export const useDashboardStats = () => {
     revalidateOnReconnect: false,
     refreshInterval: 30000 // Refresh every 30 seconds
   })
+}
+
+export const updatePreferredLanguage = async (language: string): Promise<{ message: string }> => {
+  const response = await api.put('/User/preferred-language', language)
+  return response.data
 }

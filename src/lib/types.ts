@@ -39,6 +39,7 @@ export interface User {
   IsBanned?: boolean
   IsMuted?: boolean
   MuteExpiresAt?: string
+  PreferredLanguage?: string
 }
 
 export interface Role {
@@ -269,13 +270,13 @@ export interface ActivityLog {
 }
 
 export interface ActivityLogFilterDto {
-  Action?: string
-  EntityType?: string
-  UserId?: number
-  StartDate?: string
-  EndDate?: string
-  PageNumber?: number
-  PageSize?: number
+  action?: string
+  entityType?: string
+  userId?: number
+  startDate?: string
+  endDate?: string
+  page?: number
+  pageSize?: number
 }
 
 export interface ActivitySummary {

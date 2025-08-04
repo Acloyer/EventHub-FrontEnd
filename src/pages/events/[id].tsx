@@ -171,7 +171,7 @@ export default function EventPage() {
                 </div>
                 <div className="flex items-center text-gray-600 dark:text-gray-300">
                   <TagIcon className="h-5 w-5 mr-2" />
-                  <span>{event.Category}</span>
+                  <span>{t(`events.categories.${event.Category.toLowerCase()}`) || event.Category}</span>
                 </div>
               </div>
               <div className="space-y-4">

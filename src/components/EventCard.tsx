@@ -160,7 +160,7 @@ export default function EventCard({
             {event.Category && (
               <div className="flex items-center text-gray-600 dark:text-gray-300">
                 <TagIcon className="h-5 w-5 mr-2 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                <span>{event.Category}</span>
+                <span>{t(`events.categories.${event.Category.toLowerCase()}`) || event.Category}</span>
               </div>
             )}
 

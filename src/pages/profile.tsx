@@ -101,23 +101,23 @@ function ProfilePage() {
       setShowTelegramVerification(true)
     } catch (error) {
       console.error('Error getting Telegram link:', error)
-      toast.error('Failed to get Telegram link. Please try again.')
+              toast.error(t('admin.toast.failedToGetTelegramLink'))
     }
   }
 
   const handleStartVerification = async () => {
     try {
       await startTelegramVerification(user?.Id || 0)
-      toast.success('Verification code sent to your Telegram account')
+              toast.success(t('admin.toast.verificationCodeSent'))
     } catch (error) {
       console.error('Error starting verification:', error)
-      toast.error('Failed to send verification code')
+              toast.error(t('admin.toast.failedToSendVerificationCode'))
     }
   }
 
   const handleVerifyCode = async () => {
     if (!telegramCode) {
-      toast.error('Please enter verification code')
+              toast.error(t('admin.toast.pleaseEnterVerificationCode'))
       return
     }
     
@@ -128,7 +128,7 @@ function ProfilePage() {
       await mutate()
       setShowTelegramVerification(false)
       setTelegramCode('')
-      toast.success('Telegram account successfully linked!')
+              toast.success(t('admin.toast.telegramAccountLinked'))
     } catch (error) {
       console.error('Error verifying code:', error)
       // toast.error('Failed to verify code. Please try again.')

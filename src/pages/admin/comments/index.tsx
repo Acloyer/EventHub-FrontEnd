@@ -46,17 +46,17 @@ export default function AdminCommentsPage() {
       setActionLoading(comment.Id);
       if (comment.IsPinned) {
         await unpinComment(comment.Id);
-        toast.success('Comment unpinned successfully');
+        toast.success(t('admin.toast.commentUnpinnedSuccessfully'));
       } else {
         await pinComment(comment.Id);
-        toast.success('Comment pinned successfully');
+                  toast.success(t('admin.toast.commentPinnedSuccessfully'));
       }
       // Refresh the comments list
       const data = await getAllComments(page, pageSize);
       setCommentsData(data);
     } catch (error) {
       console.error('Failed to toggle pin:', error);
-      toast.error('Failed to toggle pin status');
+              toast.error(t('admin.toast.failedToTogglePinStatus'));
     } finally {
       setActionLoading(null);
     }
@@ -70,13 +70,13 @@ export default function AdminCommentsPage() {
   const handleDelete = async (commentId: number) => {
     try {
       await deleteComment(commentId);
-      toast.success('Comment deleted successfully');
+              toast.success(t('admin.toast.commentDeletedSuccessfully'));
       // Refresh the comments list
       const data = await getAllComments(page, pageSize);
       setCommentsData(data);
     } catch (error) {
       console.error('Failed to delete comment:', error);
-      toast.error('Failed to delete comment');
+              toast.error(t('admin.toast.failedToDeleteComment'));
     }
   };
 

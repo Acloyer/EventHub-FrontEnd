@@ -91,14 +91,14 @@ export default function MyEventsPage() {
     const end = endDate ? parseISO(endDate) : null
     
     if (isPast(start)) {
-      return { status: 'Past', color: 'text-gray-500', bgColor: 'bg-gray-100', icon: ClockIcon }
+      return { status: t('events.past'), color: 'text-gray-500', bgColor: 'bg-gray-100', icon: ClockIcon }
     } else if (isToday(start)) {
-      return { status: 'Today', color: 'text-green-600', bgColor: 'bg-green-100', icon: CheckCircleIcon }
+      return { status: t('events.today'), color: 'text-green-600', bgColor: 'bg-green-100', icon: CheckCircleIcon }
     } else if (isFuture(start)) {
-      return { status: 'Upcoming', color: 'text-blue-600', bgColor: 'bg-blue-100', icon: CalendarIcon }
+      return { status: t('events.upcoming'), color: 'text-blue-600', bgColor: 'bg-blue-100', icon: CalendarIcon }
     }
     
-    return { status: 'Unknown', color: 'text-gray-500', bgColor: 'bg-gray-100', icon: ExclamationTriangleIcon }
+    return { status: t('events.unknown'), color: 'text-gray-500', bgColor: 'bg-gray-100', icon: ExclamationTriangleIcon }
   }
 
   // Function to format date
@@ -143,14 +143,14 @@ export default function MyEventsPage() {
               className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
             >
               <NoSymbolIcon className="h-4 w-4 mr-2" />
-              Blacklist ({totalBlacklisted})
+              {t('admin.blacklist.title')} ({totalBlacklisted})
             </button>
             <button
               onClick={() => router.push('/organizer/events/create')}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Create Event
+              {t('events.createEvent')}
             </button>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function MyEventsPage() {
               {totalFavorited}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Total favorited events
+              {t('events.totalFavoritedEvents')}
             </p>
           </div>
           
@@ -177,7 +177,7 @@ export default function MyEventsPage() {
               {totalPlanned}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Planned events
+              {t('events.plannedEvents')}
             </p>
           </div>
           
@@ -189,7 +189,7 @@ export default function MyEventsPage() {
               {totalReactions}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Total reactions received
+              {t('events.totalReactionsReceived')}
             </p>
           </div>
           
@@ -201,7 +201,7 @@ export default function MyEventsPage() {
               {totalComments}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Total comments received
+              {t('events.totalCommentsReceived')}
             </p>
           </div>
         </div>
@@ -229,22 +229,22 @@ export default function MyEventsPage() {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Event
+                    {t('events.event')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Status
+                    {t('events.status')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Date & Time
+                    {t('events.dateAndTime')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Location
+                    {t('events.location')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Engagement
+                    {t('events.engagement')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Actions
+                    {t('events.actions')}
                   </th>
                 </tr>
               </thead>
@@ -275,13 +275,13 @@ export default function MyEventsPage() {
                               {isFavorited && (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                                   <HeartIconSolid className="h-3 w-3 mr-1" />
-                                  Favorited
+                                  {t('events.favorited')}
                                 </span>
                               )}
                               {isPlanned && (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                   <CalendarIconSolid className="h-3 w-3 mr-1" />
-                                  Planned
+                                  {t('events.planned')}
                                 </span>
                               )}
                             </div>
@@ -303,7 +303,7 @@ export default function MyEventsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-900 dark:text-gray-100">
                           <MapPinIcon className="h-4 w-4 mr-1 text-gray-400" />
-                          {event.Location || 'Location TBD'}
+                          {event.Location || t('events.locationTBD')}
                         </div>
                       </td>
                       
@@ -367,24 +367,24 @@ export default function MyEventsPage() {
               disabled={page === 1}
               className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
             >
-              Previous
+              {t('common.previous')}
             </button>
             <button
               onClick={() => setPage(p => Math.min(events?.TotalPages || 1, p + 1))}
               disabled={page === events?.TotalPages}
               className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
             >
-              Next
+              {t('common.next')}
             </button>
           </div>
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700 dark:text-gray-300">
-                Showing <span className="font-medium">{((page - 1) * pageSize) + 1}</span> to{' '}
+                {t('events.showing')} <span className="font-medium">{((page - 1) * pageSize) + 1}</span> {t('events.to')}{' '}
                 <span className="font-medium">
                   {Math.min(page * pageSize, events?.TotalCount || 0)}
-                </span> of{' '}
-                <span className="font-medium">{events?.TotalCount || 0}</span> results
+                </span> {t('events.of')}{' '}
+                <span className="font-medium">{events?.TotalCount || 0}</span> {t('events.results')}
               </p>
             </div>
             <div>
@@ -394,17 +394,17 @@ export default function MyEventsPage() {
                   disabled={page === 1}
                   className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                 >
-                  Previous
+                  {t('common.previous')}
                 </button>
                 <span className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-t border-b border-gray-300 dark:border-gray-600">
-                  Page {page} of {events?.TotalPages || 1}
+                  {t('events.page')} {page} {t('events.of')} {events?.TotalPages || 1}
                 </span>
                 <button
                   onClick={() => setPage(p => Math.min(events?.TotalPages || 1, p + 1))}
                   disabled={page === events?.TotalPages}
                   className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                 >
-                  Next
+                  {t('common.next')}
                 </button>
               </nav>
             </div>

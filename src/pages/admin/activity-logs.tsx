@@ -58,14 +58,25 @@ export default function ActivityLogsPage() {
       try {
         setLoading(true);
         const filters = {
-          PageNumber: page,
-          PageSize: pageSize,
-          Action: actionType || undefined,
+          page: page,
+          pageSize: pageSize,
+          action: actionType || undefined,
         };
+        
+        console.log('ActivityLogs: Fetching with filters:', filters);
+        
         const [logsData, summaryData] = await Promise.all([
           getActivityLogs(filters),
           getActivitySummary()
         ]);
+        
+        console.log('ActivityLogs: Received data:', {
+          logsCount: logsData.Items?.length || 0,
+          totalCount: logsData.TotalCount,
+          pageNumber: logsData.PageNumber,
+          pageSize: logsData.PageSize,
+          totalPages: logsData.TotalPages
+        });
         setLogs(logsData.Items || []);
         setTotalCount(logsData.TotalCount || 0);
         setSummary(summaryData);
@@ -139,7 +150,7 @@ export default function ActivityLogsPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               {t('admin.activityLogs')}
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Monitor system activity</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">{t('admin.monitorSystemActivity')}</p>
           </div>
           <div className="flex space-x-2">
             <select
@@ -147,7 +158,7 @@ export default function ActivityLogsPage() {
               onChange={(e) => { setActionType(e.target.value); setPage(1) }}
               className="border border-gray-300 dark:border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              <option value="">All Actions</option>
+              <option value="">{t('admin.allActions')}</option>
               {ACTION_TYPES.map((type) => (
                 <option key={type} value={type}>{type}</option>
               ))}
@@ -158,14 +169,14 @@ export default function ActivityLogsPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              System Activity ({totalCount} entries)
+              {t('admin.systemActivity')} ({totalCount} entries)
             </h2>
           </div>
           
           <div className="p-6">
             {logs.length === 0 ? (
               <p className="text-gray-600 dark:text-gray-300 text-center py-8">
-                No activity logs found.
+                {t('admin.noActivityLogsFound')}
               </p>
             ) : (
               <div className="space-y-4">
@@ -190,14 +201,14 @@ export default function ActivityLogsPage() {
                               {log.Action || 'Unknown'}
                             </span>
                             {log.EntityId && (
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {log.EntityType} ID: {log.EntityId}
-                              </span>
+                                                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {log.EntityType} {t('admin.entityId')}: {log.EntityId}
+                            </span>
                             )}
                           </div>
                           <div className="flex items-center space-x-2">
                             <span className="text-xs text-gray-500 dark:text-gray-400">
-                              ID: {log.Id}
+                              {t('admin.logId')}: {log.Id}
                             </span>
                             <EyeIcon className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                           </div>
@@ -210,7 +221,7 @@ export default function ActivityLogsPage() {
                         <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
                           <span className="flex items-center">
                             <UserIcon className="h-3 w-3 mr-1" />
-                            User ID: {log.UserId}
+                            {t('admin.userId')}: {log.UserId}
                           </span>
                           <span>
                             {format(new Date(log.Timestamp), 'MMM d, yyyy \'at\' h:mm a')}
@@ -222,19 +233,19 @@ export default function ActivityLogsPage() {
                       <div className="lg:col-span-1">
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                           <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                            Technical Details
+                            {t('admin.technicalDetails')}
                           </h4>
                           <div className="space-y-1 text-xs">
                             <div className="flex justify-between">
-                              <span className="text-gray-500 dark:text-gray-400">User Agent:</span>
+                              <span className="text-gray-500 dark:text-gray-400">{t('admin.userAgent')}:</span>
                               <span className="text-gray-700 dark:text-gray-300 truncate max-w-32" title={log.UserAgent}>
-                                {log.UserAgent ? log.UserAgent.substring(0, 30) + '...' : 'Unknown'}
+                                                                  {log.UserAgent ? log.UserAgent.substring(0, 30) + '...' : t('admin.unknown')}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-500 dark:text-gray-400">Entity Type:</span>
+                              <span className="text-gray-500 dark:text-gray-400">{t('admin.entityType')}:</span>
                               <span className="text-gray-700 dark:text-gray-300">
-                                {log.EntityType || 'N/A'}
+                                                                  {log.EntityType || t('admin.unknown')}
                               </span>
                             </div>
                           </div>
@@ -252,29 +263,29 @@ export default function ActivityLogsPage() {
         {totalCount > pageSize && (
           <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 sm:px-6 mt-6 rounded-md">
             <div className="flex justify-between flex-1 sm:hidden">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}
-                disabled={page >= Math.ceil(totalCount / pageSize)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
-              >
-                Next
-              </button>
+                              <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                >
+                  {t('admin.previous')}
+                </button>
+                <button
+                  onClick={() => setPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}
+                  disabled={page >= Math.ceil(totalCount / pageSize)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                >
+                  {t('admin.next')}
+                </button>
             </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  Showing <span className="font-medium">{((page - 1) * pageSize) + 1}</span> to{' '}
+                  {t('admin.showing')} <span className="font-medium">{((page - 1) * pageSize) + 1}</span> {t('admin.to')}{' '}
                   <span className="font-medium">
                     {Math.min(page * pageSize, totalCount)}
-                  </span> of{' '}
-                  <span className="font-medium">{totalCount}</span> results
+                  </span> {t('admin.of')}{' '}
+                  <span className="font-medium">{totalCount}</span> {t('admin.results')}
                 </p>
               </div>
               <div>
@@ -284,17 +295,17 @@ export default function ActivityLogsPage() {
                     disabled={page === 1}
                     className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                   >
-                    Previous
+                    {t('admin.previous')}
                   </button>
                   <span className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-t border-b border-gray-300 dark:border-gray-600">
-                    Page {page} of {Math.ceil(totalCount / pageSize)}
+                    {t('admin.page')} {page} {t('admin.of')} {Math.ceil(totalCount / pageSize)}
                   </span>
                   <button
                     onClick={() => setPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}
                     disabled={page >= Math.ceil(totalCount / pageSize)}
                     className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                   >
-                    Next
+                    {t('admin.next')}
                   </button>
                 </nav>
               </div>
@@ -308,7 +319,7 @@ export default function ActivityLogsPage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Activity Log Details
+                  {t('admin.activityLogDetails')}
                 </h3>
                 <button
                   onClick={closeDetails}
@@ -322,19 +333,19 @@ export default function ActivityLogsPage() {
                 {/* Basic Information */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
-                    Basic Information
+                    {t('admin.basicInformation')}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">Log ID</label>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">{t('admin.logId')}</label>
                       <p className="text-sm text-gray-900 dark:text-gray-100 font-mono">{selectedLog.Id}</p>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">User ID</label>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">{t('admin.userId')}</label>
                       <p className="text-sm text-gray-900 dark:text-gray-100">{selectedLog.UserId}</p>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">Action</label>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">{t('admin.action')}</label>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         selectedLog.Action?.includes('USER') ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
                         selectedLog.Action?.includes('EVENT') ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
@@ -346,7 +357,7 @@ export default function ActivityLogsPage() {
                       </span>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">Timestamp</label>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">{t('admin.timestamp')}</label>
                       <p className="text-sm text-gray-900 dark:text-gray-100">
                         {format(new Date(selectedLog.Timestamp), 'MMM d, yyyy \'at\' h:mm:ss a')}
                       </p>
@@ -357,16 +368,16 @@ export default function ActivityLogsPage() {
                 {/* Entity Information */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
-                    Entity Information
+                    {t('admin.entityInformation')}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">Entity Type</label>
-                      <p className="text-sm text-gray-900 dark:text-gray-100">{selectedLog.EntityType || 'N/A'}</p>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">{t('admin.entityType')}</label>
+                                              <p className="text-sm text-gray-900 dark:text-gray-100">{selectedLog.EntityType || t('admin.unknown')}</p>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">Entity ID</label>
-                      <p className="text-sm text-gray-900 dark:text-gray-100">{selectedLog.EntityId || 'N/A'}</p>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">{t('admin.entityId')}</label>
+                                              <p className="text-sm text-gray-900 dark:text-gray-100">{selectedLog.EntityId || t('admin.unknown')}</p>
                     </div>
                   </div>
                 </div>
@@ -374,27 +385,27 @@ export default function ActivityLogsPage() {
                 {/* Details */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
-                    Details
+                    {t('admin.details')}
                   </h4>
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-                      {selectedLog.Details || 'No details provided'}
-                    </p>
+                                          <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                        {selectedLog.Details || t('admin.noDetailsProvided')}
+                      </p>
                   </div>
                 </div>
 
                 {/* Technical Information */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
-                    Technical Information
+                    {t('admin.technicalInformation')}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">User Agent</label>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">{t('admin.userAgent')}</label>
                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mt-1">
-                        <p className="text-xs text-gray-900 dark:text-gray-100 font-mono break-all">
-                          {selectedLog.UserAgent || 'Unknown'}
-                        </p>
+                                                  <p className="text-xs text-gray-900 dark:text-gray-100 font-mono break-all">
+                            {selectedLog.UserAgent || t('admin.unknown')}
+                          </p>
                       </div>
                     </div>
                   </div>
@@ -402,12 +413,12 @@ export default function ActivityLogsPage() {
               </div>
               
               <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={closeDetails}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
-                >
-                  Close
-                </button>
+                                  <button
+                    onClick={closeDetails}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+                  >
+                    {t('common.close')}
+                  </button>
               </div>
             </div>
           </div>

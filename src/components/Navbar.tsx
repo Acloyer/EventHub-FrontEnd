@@ -23,6 +23,7 @@ import NotificationCenter from './NotificationCenter'
 import ThemeToggle from './ThemeToggle';
 import { useTranslation } from 'next-i18next'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import withTranslations from '../lib/withTranslations'
 
 interface NavItem {
   name: string
@@ -39,6 +40,14 @@ export default function Navbar() {
   const router = useRouter()
   const isClient = useIsClient()
   const { t, i18n } = useTranslation('common')
+
+  // Отладка переводов
+  console.log('Navbar: i18n state', {
+    language: i18n.language,
+    isInitialized: i18n.isInitialized,
+    t: typeof t,
+    testTranslation: t('navbar.home')
+  })
 
   const isAdmin = user?.Roles?.some((role: string) => ['Admin', 'SeniorAdmin', 'Owner'].includes(role))
   const isOrganizer = user?.Roles?.some((role: string) => ['Organizer', 'Admin', 'SeniorAdmin', 'Owner'].includes(role))

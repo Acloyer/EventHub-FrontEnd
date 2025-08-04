@@ -1,8 +1,8 @@
 # EventHub Frontend
 
-**Version 1.3**
+**Version 1.4**
 
-A modern, responsive event management platform built with Next.js 13, featuring comprehensive user management, real-time notifications, multi-language support, and advanced administrative capabilities.
+A modern, responsive event management platform built with Next.js 13, featuring comprehensive user management, real-time notifications, multi-language support, advanced administrative capabilities, and enhanced internationalization.
 
 ## 🚀 Technology Stack
 
@@ -31,21 +31,27 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 - **Password reset** and account recovery
 - **Ownership Transfer System** with Telegram verification
 - **User Impersonation** for administrative debugging
+- **Preferred language** settings for internationalization
 
 ### 📅 Event Management System
 - **Event browsing** with advanced filtering and search
 - **Event creation** and editing for organizers and admins
-- **Event categorization** (Conference, Workshop, Meetup, Social, Other)
+- **Event categorization** with expanded categories:
+  - Technology, Business, Education, Entertainment, Sports, Health
+  - Conference, Workshop, Seminar, Party, Concert, Exhibition, Networking
+  - Meetup, Social, Other
 - **Date and time management** with timezone support
 - **Location tracking** with venue information
 - **Participant management** with capacity limits
 - **Event status tracking** (upcoming, ongoing, completed)
 - **Event ownership** and transfer capabilities
+- **Event filtering** by category, date, location, and organizer
 
 ### 👥 Social Features
 - **Event reactions** with emoji support and real-time counts
 - **Comment system** with threaded replies and moderation
 - **Comment pinning** for important announcements
+- **Comment editing** with edit history tracking
 - **Event bookmarking** (favorites)
 - **RSVP functionality** (planned events)
 - **Social interactions** tracking and analytics
@@ -61,13 +67,15 @@ A modern, responsive event management platform built with Next.js 13, featuring 
   - Administrative notifications
 - **Bulk operations** (mark all as read)
 - **Notification preferences** and filtering
+- **Notification management** with enhanced UX
 
 ### 🛡️ User Moderation System
-- **User banning** with duration-based restrictions
-- **User muting** for temporary communication restrictions
+- **User banning** with duration-based restrictions and reason tracking
+- **User muting** for temporary communication restrictions with rank validation
 - **Ban/mute management** with detailed logging
 - **Moderation history** and audit trails
 - **Appeal system** for banned users
+- **Organizer blacklist** for managing banned users per organizer
 
 ### 🤖 Telegram Integration
 - **Telegram account linking** for external notifications
@@ -75,6 +83,7 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 - **Event reminders** sent to Telegram
 - **Database access confirmation** via Telegram codes
 - **Notification preferences** for Telegram alerts
+- **Enhanced verification** for critical operations
 
 ### 📊 Administrative Dashboard
 - **Comprehensive admin panel** with role-based access
@@ -86,6 +95,7 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 - **Database seeding** with secure access control
 - **Ownership Transfer Management** with verification system
 - **Enhanced Role Management** with hierarchical sorting
+- **User-specific activity logs** for targeted monitoring
 
 ### 🌐 Multi-Language Support
 - **Three languages**: English, Russian, Azerbaijani
@@ -93,6 +103,8 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 - **Localized content** for all user-facing text
 - **RTL support** for future language additions
 - **Cultural adaptations** for different regions
+- **Localized event categories** and UI strings
+- **Language-specific content** delivery
 
 ### 🎨 Modern UI/UX Design
 - **Dark/Light theme** with system preference detection
@@ -103,6 +115,7 @@ A modern, responsive event management platform built with Next.js 13, featuring 
 - **Toast notifications** for user feedback
 - **Search focus preservation** - cursor stays in place during typing
 - **Enhanced pagination** with proper button disabling
+- **Minimalistic but beautiful** UI design
 
 ## 🏗️ Architecture
 
@@ -135,6 +148,7 @@ src/pages/
 │   └── seed-database.tsx       # Database seeding
 └── organizer/
     ├── index.tsx               # Organizer dashboard
+    ├── blacklist.tsx           # Organizer blacklist management
     └── events/
         ├── create.tsx          # Event creation
         ├── edit/[id].tsx       # Event editing
@@ -167,6 +181,7 @@ NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your_recaptcha_key
 - **Supported languages**: English (en), Russian (ru), Azerbaijani (az)
 - **Translation files**: `public/locales/{lang}/common.json`
 - **Language detection**: Browser preference with fallback
+- **Localized categories**: Event categories in all supported languages
 
 ### Theme Configuration
 - **Dark mode**: Class-based with system preference detection
@@ -252,43 +267,80 @@ npm run dev
 - **Progressive enhancement** for older browsers
 - **Mobile browsers** optimization
 
-## 🆕 Version 1.3 New Features
+## 🆕 Version 1.4 Enhancements
 
-### 🔄 Ownership Transfer System
-- ✅ **Telegram Verification** - Secure ownership transfer with 6-digit codes
-- ✅ **Transfer Modal** - User-friendly interface for ownership transfer
-- ✅ **Role Hierarchy** - Automatic role downgrade/upgrade during transfer
-- ✅ **Audit Logging** - Complete tracking of ownership transfers
+### 🌍 Enhanced Internationalization
+- **Expanded Event Categories** - Added new categories with full localization
+- **Localized UI Strings** - All interface elements properly translated
+- **Category Localization** - Event categories in English, Russian, and Azerbaijani
+- **Improved Language Support** - Better handling of language-specific content
 
-### 📊 Enhanced Activity Logging
-- ✅ **Comprehensive Logs** - Track all user actions and system events
-- ✅ **Advanced Filtering** - Filter logs by user, action type, date range
-- ✅ **Real-time Monitoring** - Live activity tracking for administrators
-- ✅ **Audit Trail** - Complete history for security and compliance
+### 🔄 Enhanced Ownership Transfer System
+- **Telegram Verification** - Secure ownership transfer with 6-digit codes
+- **Transfer Modal** - User-friendly interface for ownership transfer
+- **Role Hierarchy** - Automatic role downgrade/upgrade during transfer
+- **Audit Logging** - Complete tracking of ownership transfers
+- **Enhanced Security** - Multiple verification steps for critical operations
+
+### 📊 Comprehensive Activity Logging
+- **Comprehensive Logs** - Track all user actions and system events
+- **Advanced Filtering** - Filter logs by user, action type, date range
+- **Real-time Monitoring** - Live activity tracking for administrators
+- **Audit Trail** - Complete history for security and compliance
+- **User-specific Logs** - Targeted monitoring for specific users
+- **Export Capabilities** - Support for log data export
+
+### 🛡️ Enhanced Security Features
+- **Rank-based Restrictions** - Prevent muting users with equal or higher rank
+- **Role Validation** - Enforce hierarchical role assignment rules
+- **Input Validation** - Comprehensive validation for all endpoints
+- **Audit Trail** - Complete security audit trail for compliance
+- **Ban Reason Tracking** - Store and display reasons for user bans
+- **Enhanced CORS** - Improved cross-origin resource sharing policies
+
+### 🔧 API Improvements
+- **Enhanced Error Handling** - Better error messages and status codes
+- **Pagination Support** - Consistent pagination across all endpoints
+- **Search Functionality** - Advanced search capabilities
+- **Performance Optimization** - Improved response times and efficiency
+- **Better Documentation** - Enhanced Swagger documentation
+- **Consistent Response Format** - Standardized API responses
+
+### 📱 Enhanced Telegram Integration
+- **Improved Bot Functionality** - Better notification delivery
+- **Enhanced Verification** - More secure verification processes
+- **Better Error Handling** - Improved error management for Telegram operations
+- **User Experience** - Smoother integration with the platform
+
+### 🗄️ Database Improvements
+- **Schema Optimizations** - Improved database structure
+- **Index Enhancements** - Better query performance
+- **Migration System** - Robust database migration management
+- **Data Integrity** - Enhanced constraints and relationships
 
 ### 🎯 Improved Role Management
-- ✅ **Hierarchical Sorting** - Roles displayed in priority order
-- ✅ **Owner Role Protection** - Owner role excluded from manual assignment
-- ✅ **Enhanced UI** - Better visual representation of role hierarchy
-- ✅ **Role Validation** - Prevent assignment of roles higher than user's level
+- **Hierarchical Sorting** - Roles displayed in priority order
+- **Owner Role Protection** - Owner role excluded from manual assignment
+- **Enhanced UI** - Better visual representation of role hierarchy
+- **Role Validation** - Prevent assignment of roles higher than user's level
 
 ### 🔔 Enhanced Notification System
-- ✅ **Click to Delete** - Notifications removed when clicked
-- ✅ **Improved UX** - Better user experience with immediate feedback
-- ✅ **Bulk Operations** - Mark all notifications as read
-- ✅ **Real-time Updates** - Instant notification updates
+- **Click to Delete** - Notifications removed when clicked
+- **Improved UX** - Better user experience with immediate feedback
+- **Bulk Operations** - Mark all notifications as read
+- **Real-time Updates** - Instant notification updates
 
 ### 🔍 Search & Navigation Improvements
-- ✅ **Focus Preservation** - Search cursor stays in place during typing
-- ✅ **Enhanced Pagination** - Proper button disabling for navigation
-- ✅ **Better UX** - Improved user experience across all search interfaces
+- **Focus Preservation** - Search cursor stays in place during typing
+- **Enhanced Pagination** - Proper button disabling for navigation
+- **Better UX** - Improved user experience across all search interfaces
 
 ## 🌟 Key Features
 
 ### Event Management
 - ✅ Create, edit, and delete events
 - ✅ Advanced filtering and search
-- ✅ Category-based organization
+- ✅ Category-based organization with expanded categories
 - ✅ Date and time management
 - ✅ Location tracking
 - ✅ Participant management
@@ -298,22 +350,22 @@ npm run dev
 - ✅ Real-time updates
 - ✅ Responsive design
 - ✅ Accessibility support
-- ✅ Multi-language interface
+- ✅ Multi-language interface with enhanced localization
 - ✅ Dark/light themes
 
 ### Administrative Tools
-- ✅ User management
-- ✅ Role assignment
+- ✅ User management with enhanced moderation
+- ✅ Role assignment with hierarchy validation
 - ✅ Content moderation
-- ✅ Activity monitoring
+- ✅ Activity monitoring with comprehensive logging
 - ✅ System analytics
 - ✅ Database management
 
 ### Social Features
 - ✅ Event reactions
-- ✅ Comment system
+- ✅ Comment system with editing capabilities
 - ✅ User interactions
-- ✅ Notification system
+- ✅ Notification system with enhanced UX
 - ✅ Event planning
 
 ## 🤝 Contributing
@@ -331,3 +383,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 For support and questions, please refer to the project documentation or create an issue in the repository.
+
+## 📈 Roadmap
+
+### Planned Features
+- **Real-time WebSocket** support for live updates
+- **Advanced Analytics** dashboard
+- **Email Notifications** integration
+- **Mobile API** optimizations
+- **Advanced Search** with Elasticsearch
+- **File Upload** for event images
+- **Calendar Integration** (Google Calendar, Outlook)
+- **Payment Integration** for paid events

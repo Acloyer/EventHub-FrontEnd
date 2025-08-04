@@ -282,9 +282,11 @@ export default function EventsPage() {
                   onChange={(e) => handleCategoryChange(e.target.value)}
                   className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-white"
                 >
-                  <option value="">All Categories</option>
+                  <option value="">{t('events.allCategories')}</option>
                   {(categories ?? []).map(category => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category} value={category}>
+                      {t(`events.categories.${category.toLowerCase()}`) || category}
+                    </option>
                   ))}
                 </select>
               </div>

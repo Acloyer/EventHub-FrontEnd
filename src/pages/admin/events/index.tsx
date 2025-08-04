@@ -240,7 +240,7 @@ function AdminEventsPage() {
                     {formatEventDate(evt.StartDate)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {evt.Category || '-'}
+                    {evt.Category ? t(`events.categories.${evt.Category.toLowerCase()}`) || evt.Category : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {planCount}

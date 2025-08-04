@@ -76,7 +76,7 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Blacklist Management</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('admin.blacklist.title')} Management</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 text-2xl"
@@ -87,28 +87,28 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
 
         {/* Add new user to blacklist */}
         <div className="mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Add User to Blacklist</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('admin.addUserToBlacklist')}</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                User ID
+                {t('admin.user')} ID
               </label>
               <input
                 type="number"
                 value={newUserId}
                 onChange={(e) => setNewUserId(e.target.value)}
-                placeholder="Enter user ID"
+                placeholder={t('admin.enterUserId')}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Reason (optional)
+                {t('admin.reason')} ({t('common.optional')})
               </label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Enter reason for blacklisting"
+                placeholder={t('admin.enterReasonForBlacklisting')}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               />
@@ -119,7 +119,7 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
               className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserMinusIcon className="h-4 w-4 mr-2" />
-              {loading ? 'Adding...' : 'Add to Blacklist'}
+              {loading ? t('common.adding') : t('admin.addToBlacklist')}
             </button>
           </div>
         </div>
@@ -127,11 +127,11 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
         {/* Current blacklist */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Blacklisted Users ({blacklist.length})
+            {t('admin.blacklistedUsers')} ({blacklist.length})
           </h3>
           {blacklist.length === 0 ? (
             <p className="text-gray-600 dark:text-gray-300 text-center py-8">
-              No users in blacklist
+              {t('admin.noUsersInBlacklist')}
             </p>
           ) : (
             <div className="space-y-3">
@@ -150,11 +150,11 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
                       </p>
                       {entry.Reason && (
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                          Reason: {entry.Reason}
+                          {t('admin.reason')}: {entry.Reason}
                         </p>
                       )}
                       <p className="text-xs text-gray-400 dark:text-gray-500">
-                        Added: {new Date(entry.CreatedAt).toLocaleDateString()}
+                        {t('admin.added')}: {new Date(entry.CreatedAt).toLocaleDateString()}
                       </p>
                     </div>
                     <button
@@ -163,7 +163,7 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
                       className="flex items-center px-3 py-1 text-sm font-medium text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-200 border border-green-300 dark:border-green-700 rounded-md hover:bg-green-200 dark:hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                     >
                       <UserPlusIcon className="h-4 w-4 mr-1" />
-                      Remove
+                      {t('common.remove')}
                     </button>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export const BlacklistModal: React.FC<Props> = ({ isOpen, onClose, blacklist, on
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
-            Close
+            {t('common.close')}
           </button>
         </div>
       </div>

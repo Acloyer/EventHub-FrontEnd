@@ -45,7 +45,7 @@ export default function RegisterPage() {
     try {
       await registerUser(data)
     } catch (error) {
-      toast.error('Registration failed. Please try again.')
+              toast.error(t('admin.toast.registrationFailed'))
       console.error(error)
     }
   }
